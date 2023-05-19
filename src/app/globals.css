@@ -3,25 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --fit-screen: calc(100vh - 6rem);
 }
 
-@media (prefers-color-scheme: dark) {
+/* iOS only, fix incorrect 100vh problem: https://benborgers.com/posts/tailwind-h-screen */
+@supports (-webkit-touch-callout: none) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --fit-screen: -webkit-fill-available;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.infowindow {
+  @apply w-40 h-44 shadow-lg rounded-lg bg-white overflow-hidden after:content-[''] after:absolute after:left-1/2 after:top-44 after:-translate-x-1/2 after:border-[12px] after:border-x-transparent after:border-b-transparent after:border-t-white;
 }
