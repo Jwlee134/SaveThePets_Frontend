@@ -22,6 +22,7 @@ import {
   showMarker,
 } from "@/libs/utils";
 import useTimeline from "@/libs/hooks/useTimeline";
+import MyLocationButton from "./MyLocationButton";
 
 export default function Map() {
   const ref = useRef<HTMLDivElement>(null);
@@ -174,5 +175,9 @@ export default function Map() {
     dragend.current = registerDragendEvent();
   }, [map, registerIdleEvent, registerDragendEvent]);
 
-  return <div ref={ref} className="h-[var(--fit-screen)]"></div>;
+  return (
+    <div ref={ref} className="h-[var(--fit-screen)] relative">
+      <MyLocationButton mapRef={map} />
+    </div>
+  );
 }
