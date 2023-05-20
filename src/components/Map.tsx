@@ -23,6 +23,7 @@ import {
 } from "@/libs/utils";
 import useTimeline from "@/libs/hooks/useTimeline";
 import MyLocationButton from "./MyLocationButton";
+import usePersistStore from "@/libs/store/usePersistStore";
 
 export default function Map() {
   const ref = useRef<HTMLDivElement>(null);
@@ -35,7 +36,6 @@ export default function Map() {
   const markers = useRef<naver.maps.Marker[]>([]);
   const clickedMarker = useRef<naver.maps.Marker>();
   const idle = useRef<naver.maps.MapEventListener>();
-  const dragend = useRef<naver.maps.MapEventListener>();
   const click = useRef<naver.maps.MapEventListener>();
   const [clickedId, setClickedId] = useState(0);
   const { refetch } = useQuery({
@@ -53,10 +53,22 @@ export default function Map() {
     },
     enabled: !!clickedId,
   });
+  const setCoords = usePersistStore((state) => state.setCoords);
 
   const registerIdleEvent = useCallback(() => {
-    return naver.maps.Event.addListener(map.current, "idle", () => {
+    return naver.maps.Event.addListener(map.current, "idle", (e) => {
       if (!map.current) return;
+      const {
+        __targets: {
+          zoom: {
+            target: {
+              zoom,
+              center: { _lat, _lng },
+            },
+          },
+        },
+      } = e;
+      setCoords(_lat, _lng, zoom);
       const mapBounds = map.current.getBounds();
       markers.current.forEach((marker) => {
         const pos = marker.getPosition();
@@ -64,15 +76,7 @@ export default function Map() {
         else hideMarker(marker);
       });
     });
-  }, [map]);
-
-  const registerDragendEvent = useCallback(() => {
-    return naver.maps.Event.addListener(map.current, "dragend", (e) => {
-      const { _lat, _lng } = e.coord;
-      console.log(_lat, _lng);
-      refetch();
-    });
-  }, [map, refetch]);
+  }, [map, setCoords]);
 
   function renderTimeline(
     origin: MutableRefObject<naver.maps.Marker | undefined>,
@@ -84,8 +88,7 @@ export default function Map() {
   ) {
     if (!origin.current) return;
     // dragend, idle 이벤트를 제거한다.
-    if (dragend.current && idle.current)
-      naver.maps.Event.removeListener([dragend.current, idle.current]);
+    if (idle.current) naver.maps.Event.removeListener(idle.current);
     // 모든 마커들을 지도에서 지운다.
     markers.current.forEach(hideMarker);
     // 인포윈도우를 생성한다.
@@ -119,7 +122,6 @@ export default function Map() {
       polylines.current = [];
       markers.current.forEach((mk) => showMarker(map, mk));
       idle.current = registerIdleEvent();
-      dragend.current = registerDragendEvent();
       if (click.current) naver.maps.Event.removeListener(click.current);
       setClickedId(0);
     });
@@ -172,8 +174,7 @@ export default function Map() {
   useEffect(() => {
     if (!map.current) return;
     idle.current = registerIdleEvent();
-    dragend.current = registerDragendEvent();
-  }, [map, registerIdleEvent, registerDragendEvent]);
+  }, [map, registerIdleEvent]);
 
   return (
     <div ref={ref} className="h-[var(--fit-screen)] relative">
