@@ -2,7 +2,7 @@
 import Script from "next/script";
 import "./globals.css";
 import NavigationBar from "@/components/NavigationBar";
-import Providers from "@/libs/Providers";
+import Providers from "@/libs/api/Providers";
 
 export const metadata = {
   title: "Create Next App",

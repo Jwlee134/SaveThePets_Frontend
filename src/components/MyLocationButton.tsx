@@ -1,5 +1,3 @@
-"use client";
-
 import { Modal, Spin, message } from "antd";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { MdMyLocation } from "react-icons/md";

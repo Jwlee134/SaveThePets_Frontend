@@ -1,5 +1,3 @@
-"use client";
-
 import {
   MutableRefObject,
   useCallback,
@@ -11,7 +9,6 @@ import InfoWindow from "./InfoWindow";
 import Marker from "./Marker";
 import TimelineMarker from "./TimelineMarker";
 import { useQuery } from "@tanstack/react-query";
-import { getPosts, getTimeline } from "@/app/page";
 import useMap from "@/libs/hooks/useMap";
 import usePolyline from "@/libs/hooks/usePolyline";
 import useInfoWindow from "@/libs/hooks/useInfoWindow";
@@ -22,8 +19,9 @@ import {
   showMarker,
 } from "@/libs/utils";
 import useTimeline from "@/libs/hooks/useTimeline";
-import MyLocationButton from "./MyLocationButton";
 import usePersistStore from "@/libs/store/usePersistStore";
+import MyLocationButton from "./MyLocationButton";
+import { getPosts, getTimeline } from "@/libs/api/test";
 
 export default function Map() {
   const ref = useRef<HTMLDivElement>(null);
