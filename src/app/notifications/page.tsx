@@ -3,17 +3,18 @@
 import Supported from "./Supported";
 import NotSupported from "./NotSupported";
 import { useLayoutEffect, useState } from "react";
+import useIsReady from "@/libs/hooks/useIsReady";
 
-export default function Notifications() {
-  const [supported, setSupported] = useState<boolean | null>(null);
+export default function Page() {
+  const isReady = useIsReady();
+  const [supported, setSupported] = useState(true);
 
   useLayoutEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in window)
-      setSupported(true);
-    else setSupported(false);
+    if (!("serviceWorker" in navigator) || !("PushManager" in window))
+      setSupported(false);
   }, []);
 
-  if (supported === null) return null;
+  if (!isReady) return null;
   if (supported) return <Supported />;
   return <NotSupported />;
 }

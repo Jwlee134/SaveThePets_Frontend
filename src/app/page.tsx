@@ -3,7 +3,8 @@ import { getPosts } from "@/libs/api/test";
 import WithHydration from "@/libs/api/WithHydration";
 import NewButton from "@/components/NewButton";
 import { IoFilterOutline } from "react-icons/io5";
-import dynamic from "next/dynamic";
+import Home from "./Home";
+import HomeViewToggleButton from "@/components/HomeViewToggleButton";
 
 /* 
   https://nextjs.org/docs/getting-started/react-essentials#client-components
@@ -13,12 +14,9 @@ import dynamic from "next/dynamic";
   아예 ssr을 비활성회시키고 렌더링해야 한다. HomeViewToggleButton도 마찬가지.
 
   ssr을 활성화시키면 localStorage의 값에 따라 서버와 클라이언트의 UI가 달라지게 되어 hydration이 실패한다.
+
+  대안으로 useLayoutEffect에서 isReady를 true로 바꾸고 true가 되면 컴포넌트들을 렌더링한다.
 */
-const Home = dynamic(() => import("./Home"), { ssr: false });
-const HomeViewToggleButton = dynamic(
-  () => import("@/components/HomeViewToggleButton"),
-  { ssr: false }
-);
 
 export default WithHydration(
   <>
