@@ -15,3 +15,11 @@ export async function getTimeline() {
     )
     .then((res) => res.data);
 }
+
+export async function getNotifications() {
+  return axios
+    .get<{ id: string; date: string }[]>(
+      "http://localhost:3000/api/notifications"
+    )
+    .then((res) => res.data);
+}

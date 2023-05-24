@@ -5,9 +5,9 @@ import usePersistStore from "../store/usePersistStore";
 export default function useMap(ref: RefObject<HTMLDivElement>) {
   const { lat, lng, zoom } = usePersistStore(
     (state) => ({
-      lat: state.lat,
-      lng: state.lng,
-      zoom: state.zoom,
+      lat: state.coords.lat,
+      lng: state.coords.lng,
+      zoom: state.coords.zoom,
     }),
     shallow
   );

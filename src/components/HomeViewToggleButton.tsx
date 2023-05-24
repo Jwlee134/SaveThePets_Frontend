@@ -6,7 +6,10 @@ import { shallow } from "zustand/shallow";
 
 export default function HomeViewToggleButton() {
   const { opt, setOpt } = usePersistStore(
-    (state) => ({ opt: state.homeViewOpt, setOpt: state.setHomeViewOpt }),
+    (state) => ({
+      opt: state.viewOpts.homeViewOpt,
+      setOpt: state.setHomeViewOpt,
+    }),
     shallow
   );
 
