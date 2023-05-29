@@ -1,8 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 
-export default function InfoWindow() {
+export default function InfoWindow({ id }: { id: string }) {
   return (
-    <>
+    <Link href={`/posts/${id}`}>
       <div className="relative aspect-[3/2]">
         <Image src="/sample.png" alt="sample" fill className="object-cover" />
       </div>
@@ -15,6 +16,6 @@ export default function InfoWindow() {
           content2
         </p>
       </div>
-    </>
+    </Link>
   );
 }

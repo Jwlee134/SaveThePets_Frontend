@@ -26,8 +26,8 @@ interface PersistSlice {
   viewOpts: ViewOptsObject;
   auth: AuthObject;
   setCoords: (lat: number, lng: number, zoom: number) => void;
-  setHomeViewOpt: (opt: HomeViewOpt) => void;
-  setPostTimelineViewOpt: (opt: PostTimelineViewOpt) => void;
+  setHomeViewOpt: () => void;
+  setPostTimelineViewOpt: () => void;
   setAuth: (authObj: AuthObject | null) => void;
 }
 
@@ -41,14 +41,23 @@ const usePersistStore = create<PersistSlice>()(
       setCoords(lat, lng, zoom) {
         return set(() => ({ coords: { lat, lng, zoom } }));
       },
-      setHomeViewOpt(opt) {
+      setHomeViewOpt() {
         return set((state) => ({
-          viewOpts: { ...state.viewOpts, homeViewOpt: opt },
+          viewOpts: {
+            ...state.viewOpts,
+            homeViewOpt: state.viewOpts.homeViewOpt === "grid" ? "map" : "grid",
+          },
         }));
       },
-      setPostTimelineViewOpt(opt) {
+      setPostTimelineViewOpt() {
         return set((state) => ({
-          viewOpts: { ...state.viewOpts, postTimelineViewOpt: opt },
+          viewOpts: {
+            ...state.viewOpts,
+            postTimelineViewOpt:
+              state.viewOpts.postTimelineViewOpt === "timeline"
+                ? "map"
+                : "timeline",
+          },
         }));
       },
       setAuth(authObj) {

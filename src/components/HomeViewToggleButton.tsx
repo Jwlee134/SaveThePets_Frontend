@@ -7,21 +7,17 @@ import { shallow } from "zustand/shallow";
 
 export default function HomeViewToggleButton() {
   const isReady = useIsReady();
-  const { opt, setOpt } = usePersistStore(
+  const { opt, toggle } = usePersistStore(
     (state) => ({
       opt: state.viewOpts.homeViewOpt,
-      setOpt: state.setHomeViewOpt,
+      toggle: state.setHomeViewOpt,
     }),
     shallow
   );
 
-  function onClick() {
-    setOpt(opt === "map" ? "grid" : "map");
-  }
-
   if (!isReady) return null;
   return (
-    <button onClick={onClick} className="text-xl">
+    <button onClick={toggle} className="text-xl">
       {opt === "map" ? <IoGridOutline /> : <IoMapOutline />}
     </button>
   );
