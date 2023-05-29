@@ -1,5 +1,4 @@
-import { MutableRefObject, ReactNode } from "react";
-import { createRoot } from "react-dom/client";
+import { MutableRefObject } from "react";
 
 export function showMarker(
   map: MutableRefObject<naver.maps.Map | undefined>,
@@ -16,12 +15,6 @@ export function hideMarker(marker: naver.maps.Marker) {
 
 export function hidePolyline(polyline: naver.maps.Polyline) {
   polyline.setMap(null);
-}
-
-export function renderComponent(id: string, children: ReactNode) {
-  const el = document.getElementById(id)!;
-  const root = createRoot(el);
-  root.render(children);
 }
 
 export function formatCreatedAt(date: string) {
@@ -42,4 +35,17 @@ export function formatCreatedAt(date: string) {
     }
   }
   return "방금 전";
+}
+
+export function getBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+}
+
+export function cls(...args: string[]) {
+  return args.join(" ");
 }
