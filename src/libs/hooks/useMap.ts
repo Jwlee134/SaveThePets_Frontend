@@ -43,6 +43,7 @@ export default function useMap(ref: RefObject<HTMLDivElement>) {
   const unregisterIdleEvent = useCallback(() => {
     if (idle.current) {
       naver.maps.Event.removeListener(idle.current);
+      idle.current = undefined;
     }
   }, []);
 

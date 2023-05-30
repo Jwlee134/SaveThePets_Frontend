@@ -27,10 +27,8 @@ export default function Map() {
     timelineNodesArr,
     setTimelineMarkers,
   } = useTimeline(map, panToBounds);
-
   const markers = useRef<naver.maps.Marker[]>([]);
   const clickedMarker = useRef<{ id: string; lat: number; lng: number }>();
-
   const [markerNodesArr, setMarkerNodesArr] = useState<
     { id: string; node: HTMLElement; thumbUrl: string }[]
   >([]);
@@ -76,46 +74,48 @@ export default function Map() {
     map: naver.maps.Map,
     markers: MutableRefObject<naver.maps.Marker[]>
   ) {
-    const copiedData = [...data];
-    markers.current.filter((mk, i) => {
-      const { x: lng, y: lat } = mk.getPosition();
-      const idx = copiedData.findIndex(
-        (item) => item.lat === lat && item.lng === lng
-      );
-      if (idx !== -1) {
-        copiedData.splice(idx, 1);
-        return true;
+    // 새로 받아온 데이터에 기존 마커와 동일한 데이터가 없다면 삭제
+    markers.current = markers.current.filter((mk, i) => {
+      const idx = data.findIndex((item) => item.id === mk.getTitle());
+      if (idx == -1) {
+        markers.current[i].setMap(null);
+        setMarkerNodesArr((prev) => {
+          const copied = [...prev];
+          copied.splice(i, 1);
+          return copied;
+        });
+        return false;
       }
-      mk.setMap(null);
-      setMarkerNodesArr((prev) => {
-        const copied = [...prev];
-        copied.splice(idx, 1);
-        return copied;
-      });
+      return true;
     });
-    data.forEach((coord) => {
-      const marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(coord.lat, coord.lng),
-        map,
-        icon: {
-          content: `<div id="${coord.id}" />`,
-          size: new naver.maps.Size(72, 72),
-          anchor: new naver.maps.Point(36, 72),
-        },
-        title: coord.id,
+    data
+      .filter(
+        // 이미 존재하는 마커의 중복 생성 방지 위해 filter
+        (item) => !markers.current.some((mk) => item.id === mk.getTitle())
+      )
+      .forEach((coord) => {
+        const marker = new naver.maps.Marker({
+          position: new naver.maps.LatLng(coord.lat, coord.lng),
+          map,
+          icon: {
+            content: `<div id="${coord.id}" />`,
+            size: new naver.maps.Size(72, 72),
+            anchor: new naver.maps.Point(36, 72),
+          },
+          title: coord.id,
+        });
+        const node = document.getElementById(coord.id);
+        if (node)
+          setMarkerNodesArr((prev) => [
+            ...prev,
+            { id: coord.id, node, thumbUrl: "/sample.png" },
+          ]);
+        naver.maps.Event.addListener(marker, "click", () => {
+          clickedMarker.current = coord;
+          setClickedId(parseInt(marker.getTitle()));
+        });
+        markers.current.push(marker);
       });
-      const node = document.getElementById(coord.id);
-      if (node)
-        setMarkerNodesArr((prev) => [
-          ...prev,
-          { id: coord.id, node, thumbUrl: "/sample.png" },
-        ]);
-      naver.maps.Event.addListener(marker, "click", () => {
-        clickedMarker.current = coord;
-        setClickedId(parseInt(marker.getTitle()));
-      });
-      markers.current.push(marker);
-    });
   }
 
   // 마커 클릭 시 타임라인 보여주며 클릭된 마커의 인포윈도우 생성
@@ -150,6 +150,11 @@ export default function Map() {
     if (!map.current) return;
     registerIdleEvent(idleEventCallback);
   }, [map, registerIdleEvent, idleEventCallback]);
+
+  useEffect(() => {
+    if (markers.current.length)
+      markers.current.forEach((mk) => mk.setMap(null));
+  }, []);
 
   return (
     <div ref={ref} className="h-[var(--fit-screen)] relative">

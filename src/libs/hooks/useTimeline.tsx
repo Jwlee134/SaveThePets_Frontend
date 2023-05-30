@@ -12,7 +12,7 @@ export default function useTimeline(
   map: MutableRefObject<naver.maps.Map | undefined>,
   panToBounds: (coords: naver.maps.Coord[]) => void
 ) {
-  const param = useParams();
+  const params = useParams();
   const timelineMarkers = useRef<naver.maps.Marker[]>([]);
   const clickEvent = useRef<naver.maps.MapEventListener>();
   const [timelineNodesArr, setTimelineNodesArr] = useState<
@@ -134,43 +134,48 @@ export default function useTimeline(
           return true;
         });
         if (timelineMarkers.current.length === 1) resetPolylines();
-      } else {
-        data
-          .filter(
-            // 이미 존재하는 타임라인 마커의 중복 생성 방지 위해 filter
-            (item) =>
-              !timelineMarkers.current.some((mk) => item.id === mk.getTitle())
-          )
-          .forEach((coord, i) => {
-            const size = param.id === coord.id ? 36 : 28;
-            const anchor = param.id === coord.id ? 18 : 14;
-            // 마커 생성
-            const marker = new naver.maps.Marker({
-              position: new naver.maps.LatLng(coord.lat, coord.lng),
-              map: map.current,
-              icon: {
-                content: `<div id="${coord.id}" />`,
-                size: new naver.maps.Size(size, size),
-                anchor: new naver.maps.Point(anchor, anchor),
-              },
-              title: coord.id,
-            });
-            // 각 마커 클릭시 인포윈도우 생성 이벤트 추가
-            naver.maps.Event.addListener(marker, "click", () => {
-              openInfoWindow(
-                new naver.maps.Point(
-                  marker.getPosition().x,
-                  marker.getPosition().y
-                ),
-                coord.id
-              );
-            });
-            timelineMarkers.current.push(marker);
-            const node = document.getElementById(coord.id);
-            if (node)
-              setTimelineNodesArr((prev) => [...prev, { id: coord.id, node }]);
-          });
       }
+      data
+        .filter(
+          // 이미 존재하는 타임라인 마커의 중복 생성 방지 위해 filter
+          (item) =>
+            !timelineMarkers.current.some((mk) => item.id === mk.getTitle())
+        )
+        .forEach((coord, i) => {
+          const size =
+            (params.id && params.id === coord.id) || (!params.id && i === 0)
+              ? 36
+              : 28;
+          const anchor =
+            (params.id && params.id === coord.id) || (!params.id && i === 0)
+              ? 18
+              : 14;
+          // 마커 생성
+          const marker = new naver.maps.Marker({
+            position: new naver.maps.LatLng(coord.lat, coord.lng),
+            map: map.current,
+            icon: {
+              content: `<div id="${coord.id}" />`,
+              size: new naver.maps.Size(size, size),
+              anchor: new naver.maps.Point(anchor, anchor),
+            },
+            title: coord.id,
+          });
+          // 각 마커 클릭시 인포윈도우 생성 이벤트 추가
+          naver.maps.Event.addListener(marker, "click", () => {
+            openInfoWindow(
+              new naver.maps.Point(
+                marker.getPosition().x,
+                marker.getPosition().y
+              ),
+              coord.id
+            );
+          });
+          timelineMarkers.current.push(marker);
+          const node = document.getElementById(coord.id);
+          if (node)
+            setTimelineNodesArr((prev) => [...prev, { id: coord.id, node }]);
+        });
       // 마커 2개 이상이면 폴리라인으로 연결하고 줌
       if (timelineMarkers.current.length > 1) {
         makePolylines(timelineMarkers.current);
@@ -186,17 +191,18 @@ export default function useTimeline(
       registerClickEvent,
       resetInfoWindow,
       resetPolylines,
-      param.id,
+      params.id,
     ]
   );
 
   useEffect(() => {
     return () => {
-      if (clickEvent.current) {
+      if (clickEvent.current)
         naver.maps.Event.removeListener(clickEvent.current);
-      }
+      resetInfoWindow();
+      resetTimelineAndPolylines();
     };
-  }, []);
+  }, [resetInfoWindow, resetTimelineAndPolylines]);
 
   return {
     infoWindowObj,
