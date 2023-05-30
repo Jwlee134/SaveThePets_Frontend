@@ -2,18 +2,23 @@ import { Hydrate, QueryFunction, dehydrate } from "@tanstack/react-query";
 import getQueryClient from "./getQueryClient";
 import { ReactNode } from "react";
 
+interface PageParams {
+  params: { [key: string]: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
 interface WithHydrationProps {
-  queryKey: string[];
-  fetchFn: QueryFunction;
+  queryKey: (arg: PageParams) => string[];
+  queryFn: QueryFunction;
 }
 
 export default function WithHydration(
   children: ReactNode,
-  { queryKey, fetchFn }: WithHydrationProps
+  { queryKey, queryFn }: WithHydrationProps
 ) {
-  return async function () {
+  return async function (props: PageParams) {
     const queryClient = getQueryClient();
-    await queryClient.prefetchQuery(queryKey, fetchFn);
+    await queryClient.prefetchQuery(queryKey(props), queryFn);
     const dehydratedState = dehydrate(queryClient);
 
     return <Hydrate state={dehydratedState}>{children}</Hydrate>;

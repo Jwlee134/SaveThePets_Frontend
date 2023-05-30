@@ -31,7 +31,7 @@ export default WithHydration(
     <Home />
   </>,
   {
-    queryKey: ["post"],
-    fetchFn: getPosts,
+    queryKey: () => ["post"],
+    queryFn: getPosts,
   }
 );
