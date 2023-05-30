@@ -41,29 +41,27 @@ export default function TimelineDeleteModal({
     setIsModalOpen(false);
   }
 
-  const items: TimelineItemProps[] = [
-    ...(timeline
-      ? timeline.map((item, i) => ({
-          dot: <TimelineMarker index={i + 1} sm />,
-          children: (
-            <div className="flex justify-between">
-              <div className="text-gray-500 ml-2">
-                <div>2023-05-11, 14:00</div>
-                <div>경북 경산시 대동 127-1</div>
-              </div>
-              <button
-                className="text-red-500 text-lg"
-                onClick={() => {
-                  setTimeline(timeline.filter((t) => t.id !== item.id));
-                }}
-              >
-                <IoTrash />
-              </button>
-            </div>
-          ),
-        }))
-      : []),
-  ];
+  const items: TimelineItemProps[] = Array(3)
+    .fill(0)
+    .map((item, i) => ({
+      dot: <TimelineMarker index={i + 1} sm />,
+      children: (
+        <div className="flex justify-between">
+          <div className="text-gray-500 ml-2">
+            <div>2023-05-11, 14:00</div>
+            <div>경북 경산시 대동 127-1</div>
+          </div>
+          <button
+            className="text-red-500 text-lg"
+            onClick={() => {
+              setTimeline(timeline?.filter((t) => t.id !== item.id));
+            }}
+          >
+            <IoTrash />
+          </button>
+        </div>
+      ),
+    }));
 
   useEffect(() => {
     if (timeline && timeline.length === 0) setIsModalOpen(false);
@@ -71,6 +69,7 @@ export default function TimelineDeleteModal({
 
   return (
     <>
+      {/* TODO: 타임라인 없으면 아예 버튼 없애기 */}
       <button onClick={showModal}>
         <IoTrashOutline />
       </button>
@@ -83,6 +82,7 @@ export default function TimelineDeleteModal({
         okType="danger"
         okText="전체 삭제"
         cancelText="닫기"
+        bodyStyle={{ maxHeight: 230, overflowY: "auto", padding: "0 12px" }}
       >
         <Timeline items={items} className="pt-5" />
       </Modal>

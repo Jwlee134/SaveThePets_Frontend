@@ -23,3 +23,9 @@ export async function getNotifications() {
     )
     .then((res) => res.data);
 }
+
+export async function getPostDetail() {
+  return axios
+    .get<{ ok: boolean }>("http://localhost:3000/api/posts/1")
+    .then((res) => res.data);
+}

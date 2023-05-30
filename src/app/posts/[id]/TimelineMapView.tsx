@@ -26,7 +26,6 @@ export default function TimelineMapView({
 
   useEffect(() => {
     if (!map.current || !timeline) return;
-    console.log("timelinemapview");
     setTimelineMarkers([post, ...timeline])({
       shouldResetTimelineMarkers: false,
     });
