@@ -17,7 +17,7 @@ export default function NotificationList() {
   }, [data, setIsEmpty]);
 
   return (
-    <ul className="space-y-4">
+    <ul className="space-y-4 p-4">
       {data?.map((item) => (
         <NotificationItem key={item.id} {...item} />
       ))}

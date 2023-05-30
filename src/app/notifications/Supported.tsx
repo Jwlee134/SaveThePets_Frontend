@@ -3,8 +3,9 @@
 import LoginRequired from "@/components/LoginRequired";
 import Permission from "./Permission";
 import NotificationList from "./NotificationList";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import usePersistStore from "@/libs/store/usePersistStore";
+import NotificationSkeleton from "./NotificationSkeleton";
 
 export default function Supported() {
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
@@ -30,5 +31,9 @@ export default function Supported() {
 
   if (!isLoggedIn) return <LoginRequired />;
   if (status !== "granted") return <Permission />;
-  return <NotificationList />;
+  return (
+    <Suspense fallback={<NotificationSkeleton />}>
+      <NotificationList />
+    </Suspense>
+  );
 }
