@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-before-interactive-script-outside-document */
 import Script from "next/script";
+import "../../public/antd.min.css";
 import "./globals.css";
 import NavigationBar from "@/components/NavigationBar";
-import Providers from "@/libs/api/Providers";
+import QueryProvider from "@/libs/providers/QueryProvider";
 
 export const metadata = {
   title: "Create Next App",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <main className="py-12 max-w-screen-sm mx-auto">
-          <Providers>{children}</Providers>
+          <QueryProvider>{children}</QueryProvider>
           <NavigationBar />
         </main>
         <Script
