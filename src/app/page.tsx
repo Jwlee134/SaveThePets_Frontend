@@ -1,10 +1,8 @@
 import Header from "@/components/Header";
-import { getPosts } from "@/libs/api/test";
-import WithHydration from "@/libs/api/WithHydration";
 import NewButton from "@/components/NewButton";
-import { IoFilterOutline } from "react-icons/io5";
 import Home from "./Home";
 import HomeViewToggleButton from "@/components/HomeViewToggleButton";
+import FilterButton from "@/components/FilterButton";
 
 /* 
   https://nextjs.org/docs/getting-started/react-essentials#client-components
@@ -18,20 +16,18 @@ import HomeViewToggleButton from "@/components/HomeViewToggleButton";
   대안으로 useLayoutEffect에서 isReady를 true로 바꾸고 true가 되면 컴포넌트들을 렌더링한다.
 */
 
-export default WithHydration(
-  <>
-    <Header
-      showLogo
-      rightIcons={[
-        <HomeViewToggleButton key={0} />,
-        <NewButton key={1} />,
-        <IoFilterOutline key={2} className="text-2xl" />,
-      ]}
-    />
-    <Home />
-  </>,
-  {
-    queryKey: () => ["post"],
-    queryFn: getPosts,
-  }
-);
+export default function Page() {
+  return (
+    <>
+      <Header
+        showLogo
+        rightIcons={[
+          <HomeViewToggleButton key={0} />,
+          <NewButton key={1} />,
+          <FilterButton key={2} />,
+        ]}
+      />
+      <Home />
+    </>
+  );
+}

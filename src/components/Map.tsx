@@ -7,7 +7,7 @@ import {
 } from "react";
 import Marker from "./Marker";
 import { useQuery } from "@tanstack/react-query";
-import useMap from "@/libs/hooks/useMap";
+import useMap, { IdleCallbackArgs } from "@/libs/hooks/useMap";
 import { hideMarker, showMarker } from "@/libs/utils";
 import useTimeline from "@/libs/hooks/useTimeline";
 import usePersistStore from "@/libs/store/usePersistStore";
@@ -16,6 +16,7 @@ import { getPosts, getTimeline } from "@/libs/api/test";
 import { createPortal } from "react-dom";
 import TimelineMarker from "./TimelineMarker";
 import InfoWindow from "./InfoWindow";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Map() {
   const ref = useRef<HTMLDivElement>(null);
@@ -26,44 +27,76 @@ export default function Map() {
     openInfoWindow,
     timelineNodesArr,
     setTimelineMarkers,
+    resetInfoWindow,
+    resetTimelineAndPolylines,
   } = useTimeline(map, panToBounds);
+  const setCoords = usePersistStore((state) => state.setCoords);
+  const searchParams = useSearchParams();
+  const filterEnabled = !!searchParams.toString();
+  const router = useRouter();
   const markers = useRef<naver.maps.Marker[]>([]);
-  const clickedMarker = useRef<{ id: string; lat: number; lng: number }>();
+  const clickedMarker = useRef<{ id: string; lat: number; lng: number } | null>(
+    null
+  );
   const [markerNodesArr, setMarkerNodesArr] = useState<
     { id: string; node: HTMLElement; thumbUrl: string }[]
   >([]);
   const [clickedId, setClickedId] = useState(0);
-  const { data: posts } = useQuery({
+
+  const { data: posts, refetch: fetchPosts } = useQuery({
     queryKey: ["posts"],
     queryFn: getPosts,
+    enabled: false,
+  });
+  const { data: filteredPosts } = useQuery({
+    queryKey: ["posts", searchParams.toString()],
+    queryFn: getPosts,
+    enabled: filterEnabled,
   });
   const { data: timeline } = useQuery({
     queryKey: ["posts", clickedId, "timeline"],
     queryFn: getTimeline,
     enabled: !!clickedId,
   });
-  const setCoords = usePersistStore((state) => state.setCoords);
+
+  const showVisibleMarkersOnly = useCallback(() => {
+    if (!map.current) return;
+    const mapBounds = map.current.getBounds();
+    markers.current.forEach((marker) => {
+      const pos = marker.getPosition();
+      if (mapBounds.hasPoint(pos)) showMarker(map, marker);
+      else hideMarker(marker);
+    });
+  }, [map]);
 
   const idleEventCallback = useCallback(
-    (lat: number, lng: number, zoom: number) => {
-      console.log(lat, lng, zoom);
-      if (!map.current) return;
-      setCoords(lat, lng, zoom);
-      const mapBounds = map.current.getBounds();
-      markers.current.forEach((marker) => {
-        const pos = marker.getPosition();
-        if (mapBounds.hasPoint(pos)) showMarker(map, marker);
-        else hideMarker(marker);
-      });
+    ({ centerLat, centerLng, zoom }: IdleCallbackArgs) => {
+      setCoords(
+        Number(centerLat.toFixed(6)),
+        Number(centerLng.toFixed(6)),
+        zoom
+      );
+      fetchPosts();
+      showVisibleMarkersOnly();
     },
-    [map, setCoords]
+    [setCoords, fetchPosts, showVisibleMarkersOnly]
   );
 
-  const customResetAction = useCallback(() => {
-    markers.current.forEach((mk) => showMarker(map, mk));
-    registerIdleEvent(idleEventCallback);
-    setClickedId(0);
-  }, [idleEventCallback, map, registerIdleEvent]);
+  const idleEventCallbackFiltered = useCallback(
+    ({ centerLat, centerLng, zoom }: IdleCallbackArgs) => {
+      setCoords(
+        Number(centerLat.toFixed(6)),
+        Number(centerLng.toFixed(6)),
+        zoom
+      );
+      const instance = new URLSearchParams(window.location.search);
+      instance.set("userLat", centerLat.toFixed(6));
+      instance.set("userLot", centerLng.toFixed(6));
+      router.replace(`/?${instance.toString()}`);
+      showVisibleMarkersOnly();
+    },
+    [router, setCoords, showVisibleMarkersOnly]
+  );
 
   function setMarkers(
     data: {
@@ -131,30 +164,80 @@ export default function Map() {
       clickedMarker.current.id
     );
     setTimelineMarkers([clickedMarker.current, ...timeline])({
-      customResetAction,
+      customResetAction: () => {
+        markers.current.forEach((mk) => showMarker(map, mk));
+        registerIdleEvent(
+          filterEnabled ? idleEventCallbackFiltered : idleEventCallback,
+          filterEnabled ? undefined : true
+        );
+        setClickedId(0);
+      },
     });
+    /* 
+      filterEnabled가 의존성에 들어갔으므로 타임라인 보여지는 동안 필터 활성화 및 비활성화 시
+      중복 생성 방지를 위한 clean up 함수를 리턴해주어야 한다.
+    */
+    return () => {
+      clickedMarker.current = null;
+      setClickedId(0);
+      resetInfoWindow();
+      resetTimelineAndPolylines();
+    };
   }, [
+    map,
     timeline,
-    customResetAction,
+    filterEnabled,
     openInfoWindow,
     setTimelineMarkers,
     unregisterIdleEvent,
+    idleEventCallback,
+    idleEventCallbackFiltered,
+    registerIdleEvent,
+    resetInfoWindow,
+    resetTimelineAndPolylines,
   ]);
 
+  const resetMarkers = useCallback(() => {
+    if (markers.current.length) {
+      markers.current.forEach((mk) => mk.setMap(null));
+      markers.current = [];
+      setMarkerNodesArr([]);
+    }
+  }, []);
+
   useEffect(() => {
-    if (map.current && posts && posts.length)
+    if (map.current && posts && posts.length && !filterEnabled)
       setMarkers(posts, map.current, markers);
-  }, [map, posts]);
+  }, [map, posts, filterEnabled]);
+
+  useEffect(() => {
+    if (map.current && filteredPosts && filteredPosts.length && filterEnabled)
+      setMarkers(filteredPosts, map.current, markers);
+  }, [map, filteredPosts, filterEnabled]);
 
   useEffect(() => {
     if (!map.current) return;
-    registerIdleEvent(idleEventCallback);
-  }, [map, registerIdleEvent, idleEventCallback]);
+    if (!filterEnabled) registerIdleEvent(idleEventCallback, true);
+    else registerIdleEvent(idleEventCallbackFiltered);
+    return () => {
+      resetMarkers();
+      unregisterIdleEvent();
+    };
+  }, [
+    map,
+    filterEnabled,
+    registerIdleEvent,
+    idleEventCallback,
+    idleEventCallbackFiltered,
+    unregisterIdleEvent,
+    resetMarkers,
+  ]);
 
   useEffect(() => {
-    if (markers.current.length)
-      markers.current.forEach((mk) => mk.setMap(null));
-  }, []);
+    return () => {
+      resetMarkers();
+    };
+  }, [resetMarkers]);
 
   return (
     <div ref={ref} className="h-[var(--fit-screen)] relative">

@@ -209,5 +209,7 @@ export default function useTimeline(
     timelineNodesArr,
     openInfoWindow,
     setTimelineMarkers,
+    resetInfoWindow,
+    resetTimelineAndPolylines,
   };
 }
