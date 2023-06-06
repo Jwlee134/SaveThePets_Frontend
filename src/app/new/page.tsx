@@ -1,3 +1,5 @@
+"use client";
+
 import PostForm, { PostFormValues } from "@/components/PostForm";
 
 export default function Page() {
