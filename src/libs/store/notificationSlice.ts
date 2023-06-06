@@ -21,12 +21,18 @@ export const createNotificationSlice: Slice<NotificationSlice> = (
 ) => ({
   ...initialState,
   setIsEmpty(isEmpty) {
-    return set({ isEmpty });
+    return set(({ notification }) => {
+      notification.isEmpty = isEmpty;
+    });
   },
   toggleDeleteMode() {
-    return set({ isDeleteMode: !get().isDeleteMode });
+    return set(({ notification }) => {
+      notification.isDeleteMode = !notification.isDeleteMode;
+    });
   },
   toggleDeleteAllClicked() {
-    return set({ isDeleteAllClicked: !get().isDeleteAllClicked });
+    return set(({ notification }) => {
+      notification.isDeleteAllClicked = !notification.isDeleteAllClicked;
+    });
   },
 });

@@ -1,5 +1,6 @@
 import { StateCreator, create } from "zustand";
 import { devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import {
   NotificationSlice,
   createNotificationSlice,
@@ -7,21 +8,27 @@ import {
 import { PostFormSlice, createPostFormSlice } from "./postFormSlice";
 import { CommentSlice, createCommentSlice } from "./commentSlice";
 
-type BoundStore = NotificationSlice & PostFormSlice & CommentSlice;
+interface BoundStore {
+  notification: NotificationSlice;
+  postForm: PostFormSlice;
+  comment: CommentSlice;
+}
 
 export type Slice<T> = StateCreator<
   BoundStore,
-  [["zustand/devtools", never]],
+  [["zustand/devtools", never], ["zustand/immer", never]],
   [],
   T
 >;
 
 const useBoundStore = create<BoundStore>()(
-  devtools((...a) => ({
-    ...createNotificationSlice(...a),
-    ...createPostFormSlice(...a),
-    ...createCommentSlice(...a),
-  }))
+  devtools(
+    immer((...a) => ({
+      notification: createNotificationSlice(...a),
+      postForm: createPostFormSlice(...a),
+      comment: createCommentSlice(...a),
+    }))
+  )
 );
 
 export default useBoundStore;

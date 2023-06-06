@@ -73,11 +73,11 @@ export default function PostForm({
     species,
     breed,
   } = useBoundStore(
-    (state) => ({
-      time: state.time,
-      content: state.content,
-      species: state.species,
-      breed: state.breed,
+    ({ postForm }) => ({
+      time: postForm.time,
+      content: postForm.content,
+      species: postForm.species,
+      breed: postForm.breed,
     }),
     shallow
   );
@@ -99,13 +99,12 @@ export default function PostForm({
         form={form}
         labelCol={{ span: 24 }}
         initialValues={{
-          date: initialTime ? dayjs(initialTime) : null,
-          time: initialTime ? dayjs(initialTime) : null,
-          etc: content || null,
-          speciesBreed:
-            species !== undefined
-              ? [species, ...(breed !== undefined ? [breed] : [])]
-              : null,
+          ...(initialTime && { date: dayjs(initialTime) }),
+          ...(initialTime && { time: dayjs(initialTime) }),
+          ...(content && { etc: content }),
+          ...(species !== null && {
+            speciesBreed: [species, ...(breed !== null ? [breed] : [])],
+          }),
         }}
       >
         <Form.Item

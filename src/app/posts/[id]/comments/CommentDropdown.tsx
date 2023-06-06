@@ -15,7 +15,7 @@ export default function CommentDropdown() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
-  const enableEditMode = useBoundStore((state) => state.enableEditMode);
+  const enableEditMode = useBoundStore(({ comment }) => comment.enableEditMode);
   const isReady = useIsReady();
 
   function showModal() {

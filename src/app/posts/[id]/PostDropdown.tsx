@@ -10,7 +10,7 @@ export default function PostDropdown() {
   const router = useRouter();
   const params = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const setValues = useBoundStore((state) => state.setValues);
+  const setValues = useBoundStore(({ postForm }) => postForm.setValues);
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const isReady = useIsReady();
 

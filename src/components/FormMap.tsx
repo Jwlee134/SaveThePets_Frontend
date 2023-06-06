@@ -14,7 +14,7 @@ export default function FormMap() {
   const ref = useRef<HTMLDivElement>(null);
   const { map, registerIdleEvent } = useMap(ref);
   const { lat, lng } = useBoundStore(
-    (state) => ({ lat: state.lat, lng: state.lng }),
+    ({ postForm }) => ({ lat: postForm.lat, lng: postForm.lng }),
     shallow
   );
 

@@ -16,11 +16,11 @@ export default function NotificationHeaderIcon() {
     },
   });
   const { isEmpty, isDeleteMode, setIsEmpty, toggleDeleteMode } = useBoundStore(
-    (state) => ({
-      isEmpty: state.isEmpty,
-      isDeleteMode: state.isDeleteMode,
-      setIsEmpty: state.setIsEmpty,
-      toggleDeleteMode: state.toggleDeleteMode,
+    ({ notification }) => ({
+      isEmpty: notification.isEmpty,
+      isDeleteMode: notification.isDeleteMode,
+      setIsEmpty: notification.setIsEmpty,
+      toggleDeleteMode: notification.toggleDeleteMode,
     }),
     shallow
   );

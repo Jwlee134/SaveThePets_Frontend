@@ -9,11 +9,11 @@ const { TextArea } = Input;
 export default function CommentForm() {
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const { isEdit, id, value, disableEditMode } = useBoundStore(
-    (state) => ({
-      isEdit: state.isEdit,
-      id: state.id,
-      value: state.value,
-      disableEditMode: state.disableEditMode,
+    ({ comment }) => ({
+      isEdit: comment.isEdit,
+      id: comment.id,
+      value: comment.value,
+      disableEditMode: comment.disableEditMode,
     }),
     shallow
   );

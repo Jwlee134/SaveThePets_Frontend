@@ -10,7 +10,9 @@ export default function NotificationItem({
   id: string;
   date: string;
 }) {
-  const isDeleteMode = useBoundStore((state) => state.isDeleteMode);
+  const isDeleteMode = useBoundStore(
+    ({ notification }) => notification.isDeleteMode
+  );
 
   function onDeleteClick() {}
 

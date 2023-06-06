@@ -8,7 +8,10 @@ import { shallow } from "zustand/shallow";
 
 export default function Page() {
   const { photos, reset } = useBoundStore(
-    (state) => ({ photos: state.photos, reset: state.resetValues }),
+    ({ postForm }) => ({
+      photos: postForm.photos,
+      reset: postForm.resetValues,
+    }),
     shallow
   );
   const [initialFileList, setInitialFileList] = useState<FileObj[]>([]);

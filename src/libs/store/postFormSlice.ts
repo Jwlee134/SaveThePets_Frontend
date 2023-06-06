@@ -28,25 +28,22 @@ const initialState: InitialState = {
 export const createPostFormSlice: Slice<PostFormSlice> = (set, get) => ({
   ...initialState,
   setValues({ photos, species, breed, time, lat, lng, content }) {
-    return set(() => ({
-      photos: photos || [],
-      species: species ?? null,
-      breed: breed ?? null,
-      time: time || null,
-      lat: lat || null,
-      lng: lng || null,
-      content: content || "",
-    }));
+    return set((state) => {
+      state.postForm = {
+        ...state.postForm,
+        photos: photos || [],
+        species: species ?? null,
+        breed: breed ?? null,
+        time: time || null,
+        lat: lat || null,
+        lng: lng || null,
+        content: content || "",
+      };
+    });
   },
   resetValues() {
-    return set(() => ({
-      photos: initialState.photos,
-      species: initialState.species,
-      breed: initialState.breed,
-      time: initialState.time,
-      lat: initialState.lat,
-      lng: initialState.lng,
-      content: initialState.content,
-    }));
+    return set((state) => {
+      state.postForm = { ...state.postForm, ...initialState };
+    });
   },
 });

@@ -5,7 +5,9 @@ import useBoundStore from "@/libs/store";
 import { useEffect } from "react";
 
 export default function NotificationList() {
-  const setIsEmpty = useBoundStore((state) => state.setIsEmpty);
+  const setIsEmpty = useBoundStore(
+    ({ notification }) => notification.setIsEmpty
+  );
   const { data } = useQuery({
     queryKey: ["notifications"],
     queryFn: getNotifications,

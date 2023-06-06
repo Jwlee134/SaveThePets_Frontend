@@ -17,9 +17,15 @@ const initialState = {
 export const createCommentSlice: Slice<CommentSlice> = (set, get) => ({
   ...initialState,
   enableEditMode({ id, value }) {
-    return set({ isEdit: true, id, value });
+    return set(({ comment }) => {
+      comment.isEdit = true;
+      comment.id = id;
+      comment.value = value;
+    });
   },
   disableEditMode() {
-    return set({ isEdit: false, id: 0, value: "" });
+    return set((state) => {
+      state.comment = { ...state.comment, ...initialState };
+    });
   },
 });
