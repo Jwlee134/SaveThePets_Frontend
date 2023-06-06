@@ -1,17 +1,15 @@
-import { ChangeEvent, Dispatch, SetStateAction } from "react";
+import { ChangeEvent } from "react";
 import { IoAddOutline } from "react-icons/io5";
 import Photo from "./Photo";
 import { AnimatePresence, motion } from "framer-motion";
-import { message } from "antd";
+import { Form, message } from "antd";
 import { getBase64 } from "@/libs/utils";
-import { FileObj } from "./page";
+import { FileObj, PostFormValues } from "./PostForm";
 
-interface PhotosProps {
-  fileList: FileObj[];
-  setFileList: Dispatch<SetStateAction<FileObj[]>>;
-}
+export default function Photos() {
+  const form = Form.useFormInstance<PostFormValues>();
+  const fileList = Form.useWatch("photos", form) || [];
 
-export default function Photos({ fileList, setFileList }: PhotosProps) {
   async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
     if (fileList.length + e.target.files.length > 10) {
@@ -24,11 +22,14 @@ export default function Photos({ fileList, setFileList }: PhotosProps) {
         return { data: file, id: `${file.name}-${file.size}`, url: thumbUrl };
       })
     );
-    setFileList([...fileList, ...newFileList]);
+    form.setFieldValue("photos", [...fileList, ...newFileList]);
   }
 
   function onDeleteClick(file: FileObj) {
-    setFileList(fileList.filter((item) => item.id !== file.id));
+    form.setFieldValue(
+      "photos",
+      fileList.filter((item) => item.id !== file.id)
+    );
   }
 
   return (

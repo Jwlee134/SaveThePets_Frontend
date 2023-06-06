@@ -28,11 +28,7 @@ export default function NavigationBar() {
           )}
         </Link>
         <Link href="/me" className="grid place-items-center">
-          {pathname.includes("me") ? (
-            <IoPersonCircle />
-          ) : (
-            <IoPersonCircleOutline />
-          )}
+          {pathname === "/me" ? <IoPersonCircle /> : <IoPersonCircleOutline />}
         </Link>
       </div>
     </nav>

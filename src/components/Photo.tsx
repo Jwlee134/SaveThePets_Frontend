@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { IoClose } from "react-icons/io5";
-import { FileObj } from "./page";
+import { FileObj } from "./PostForm";
 
 interface PhotoProps {
   file: FileObj;

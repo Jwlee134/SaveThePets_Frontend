@@ -4,14 +4,18 @@ import usePersistStore from "@/libs/store/usePersistStore";
 import { Dropdown, Modal } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { IoMenuOutline } from "react-icons/io5";
+import { IoIosMore } from "react-icons/io";
 
-export default function PostDropdown() {
-  const router = useRouter();
+export default function CommentDropdown() {
+  const value = `Lorem Ipsum is simply dummy text of the printing and typesetting
+  industry. Lorem Ipsum has been the industry's standard dummy text ever
+  since the 1500s, when an unknown printer took a galley of type and
+  scrambled it to make a type specimen book.`;
   const params = useParams();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const setValues = useBoundStore((state) => state.setValues);
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
+  const enableEditMode = useBoundStore((state) => state.enableEditMode);
   const isReady = useIsReady();
 
   function showModal() {
@@ -26,20 +30,7 @@ export default function PostDropdown() {
     setIsModalOpen(false);
   }
 
-  function handleEditClick() {
-    setValues({
-      photos: ["/sample1.jpg", "/sample2.jpg", "/sample3.jpg"],
-      lat: 35.822507,
-      lng: 128.758031,
-      time: new Date().toISOString(),
-      content: "asdf",
-      species: 0,
-      breed: 0,
-    });
-    router.push(`/posts/${params.id}/edit?type=missed`);
-  }
-
-  if (!isReady || !isLoggedIn) return null;
+  if (!isLoggedIn || !isReady) return null;
   return (
     <>
       <Dropdown
@@ -48,7 +39,7 @@ export default function PostDropdown() {
             {
               label: "수정",
               key: "0",
-              onClick: handleEditClick,
+              onClick: () => enableEditMode({ id: 1, value }),
             },
             {
               label: "삭제",
@@ -58,12 +49,13 @@ export default function PostDropdown() {
             {
               label: "신고",
               key: "2",
-              onClick: () => router.push(`/posts/${params.id}/report`),
+              onClick: () =>
+                router.push(`/posts/${params.id}/comments/1/report`),
             },
           ],
         }}
       >
-        <IoMenuOutline />
+        <IoIosMore />
       </Dropdown>
       <Modal
         title="정말 삭제하시겠습니까?"

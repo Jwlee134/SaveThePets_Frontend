@@ -1,33 +1,39 @@
+import useIsReady from "@/libs/hooks/useIsReady";
+import useBoundStore from "@/libs/store";
+import usePersistStore from "@/libs/store/usePersistStore";
 import { Button, Form, Input } from "antd";
-import Comment from "./Comment";
-import { getPostDetail } from "@/libs/api/test";
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { shallow } from "zustand/shallow";
 const { TextArea } = Input;
 
 export default function CommentForm() {
-  const params = useParams();
-  const { data } = useQuery({
-    queryKey: ["posts", params.id],
-    queryFn: getPostDetail,
-    suspense: true,
-  });
-  const [isEdit, setIsEdit] = useState(false);
+  const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
+  const { isEdit, id, value, disableEditMode } = useBoundStore(
+    (state) => ({
+      isEdit: state.isEdit,
+      id: state.id,
+      value: state.value,
+      disableEditMode: state.disableEditMode,
+    }),
+    shallow
+  );
+  const isReady = useIsReady();
   const [form] = Form.useForm<{ value: string }>();
   const disableBtn = !Form.useWatch("value", form);
 
   function handleFinish({ value }: { value: string }) {
     console.log(value);
-    form.setFieldValue("value", "");
-    if (isEdit) setIsEdit(false);
+
+    if (isEdit) {
+      disableEditMode();
+    } else {
+      form.setFieldValue("value", "");
+    }
   }
 
-  function handleEdit(value: string) {
+  useEffect(() => {
     form.setFieldValue("value", value);
-    setIsEdit(true);
-  }
+  }, [isEdit, value, form]);
 
   return (
     <>
@@ -37,7 +43,16 @@ export default function CommentForm() {
         onFinish={handleFinish}
       >
         <Form.Item name="value" className="mb-0 flex-grow">
-          <TextArea />
+          <TextArea
+            disabled={!isReady || !isLoggedIn}
+            placeholder={
+              isReady
+                ? !isLoggedIn
+                  ? "로그인이 필요한 서비스입니다."
+                  : ""
+                : ""
+            }
+          />
         </Form.Item>
         <Form.Item className="mb-0">
           <Button
@@ -50,13 +65,6 @@ export default function CommentForm() {
           </Button>
         </Form.Item>
       </Form>
-      <div className="p-4 space-y-6">
-        {Array(10)
-          .fill(0)
-          .map((v, i) => (
-            <Comment key={i} handleEdit={handleEdit} />
-          ))}
-      </div>
     </>
   );
 }

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import CommentForm from "./CommentForm";
 import { getPostDetail } from "@/libs/api/test";
+import Comment from "./Comment";
 
 export default function Page({ params: { id = "" } = {} }) {
   const { data } = useQuery({
@@ -25,6 +26,13 @@ export default function Page({ params: { id = "" } = {} }) {
         </div>
       </div>
       <CommentForm />
+      <div className="p-4 space-y-6">
+        {Array(10)
+          .fill(0)
+          .map((v, i) => (
+            <Comment key={i} />
+          ))}
+      </div>
     </>
   );
 }

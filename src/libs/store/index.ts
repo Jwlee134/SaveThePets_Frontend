@@ -4,8 +4,10 @@ import {
   NotificationSlice,
   createNotificationSlice,
 } from "./notificationSlice";
+import { PostFormSlice, createPostFormSlice } from "./postFormSlice";
+import { CommentSlice, createCommentSlice } from "./commentSlice";
 
-type BoundStore = NotificationSlice;
+type BoundStore = NotificationSlice & PostFormSlice & CommentSlice;
 
 export type Slice<T> = StateCreator<
   BoundStore,
@@ -17,6 +19,8 @@ export type Slice<T> = StateCreator<
 const useBoundStore = create<BoundStore>()(
   devtools((...a) => ({
     ...createNotificationSlice(...a),
+    ...createPostFormSlice(...a),
+    ...createCommentSlice(...a),
   }))
 );
 
