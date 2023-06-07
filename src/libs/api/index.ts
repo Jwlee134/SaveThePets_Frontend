@@ -15,47 +15,57 @@ import {
   PostsMapQueryParams,
   ReportBody,
   TimelineBody,
+  UpdateCommentBody,
 } from "./types";
 import { QueryFunctionContext } from "@tanstack/react-query";
-import withHandler from "./withHandler";
 
-const instance = axios.create({ baseURL: "http://something" });
+const instance = axios.create({ baseURL: "http://localhost:8080" });
 
 instance.interceptors.request.use((config) => {
-  const token = usePersistStore().auth.token;
+  const token = usePersistStore.getState().auth.token;
   if (token) config.headers.Authorization = token;
   return config;
 });
 
+instance.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    console.error(err);
+    return Promise.reject(
+      new Error(err.message, { cause: err.response?.data?.error })
+    );
+  }
+);
+
 // AlarmController
 
-export const deleteNotification = withHandler<boolean, number>((alarmId) =>
-  instance.delete("/alarm", { data: { alarmId } })
-);
+export const deleteNotification = (alarmId: number) =>
+  instance
+    .delete<boolean>("/alarm", { data: { alarmId } })
+    .then((res) => res.data);
 
 // BookmarkController
 
-export const createBookmark = withHandler<boolean, number>((postId) =>
-  instance.post("/bookmark", { postId })
-);
+export const createBookmark = (postId: number) =>
+  instance.post<boolean>("/bookmark", { postId }).then((res) => res.data);
 
-export const deleteBookmark = withHandler<boolean, number>((postId) =>
-  instance.delete("/bookmark", { data: { postId } })
-);
+export const deleteBookmark = (postId: number) =>
+  instance
+    .delete<boolean>("/bookmark", { data: { postId } })
+    .then((res) => res.data);
 
 // CommentController
 
-export const createComment = withHandler<boolean, CreateCommentBody>((data) =>
-  instance.post("/comment", data)
-);
+export const createComment = (data: CreateCommentBody) =>
+  instance.post<boolean>("/comment", data).then((res) => res.data);
 
-export const updateComment = withHandler<boolean, CreateCommentBody>((data) =>
-  instance.put("/comment", data)
-);
+export const updateComment = (data: UpdateCommentBody) =>
+  instance.put<boolean>("/comment", data).then((res) => res.data);
 
-export const deleteComment = withHandler<boolean, number>((commentId) =>
-  instance.delete("/comment", { data: { commentId } })
-);
+export const deleteComment = (commentId: number) =>
+  instance
+    .delete<boolean>("/comment", { data: { commentId } })
+    .then((res) => res.data);
 
 // PostController
 
@@ -69,11 +79,12 @@ export const deleteComment = withHandler<boolean, number>((commentId) =>
  * @property lot 경도: number
  * @property type 실종: 0, 목격: 1, 보호: 2, 분양: 3
  */
-export const createPost = withHandler<boolean, FormData>((data) =>
-  instance.post("/post", data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })
-);
+export const createPost = (data: FormData) =>
+  instance
+    .post<number>("/post", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((res) => res.data);
 
 /**
  * @property content 부가 정보 또는 반려동물 정보: string
@@ -85,96 +96,95 @@ export const createPost = withHandler<boolean, FormData>((data) =>
  * @property lot 경도: number
  * @property type 실종: 0, 목격: 1, 보호: 2, 분양: 3
  */
-export const updatePost = withHandler<boolean, FormData>((data) =>
-  instance.put("/post", data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })
-);
-
-export const deletePost = withHandler<boolean, string>((postId) =>
-  instance.delete("/post", { data: { postId } })
-);
-
-export const getPostsGrid = withHandler<PostResponse[], QueryFunctionContext>(
-  ({ pageParam = 1 }) => instance.get(`/post/list/${pageParam}`)
-);
-
-export const getPostsMap = withHandler<PostResponse[], PostsMapQueryParams>(
-  (params) =>
-    instance.get(`/post/map?${new URLSearchParams(params).toString()}`)
-);
-
-export const getFilteredPosts = withHandler<PostResponse[], FilterParams>(
-  (params) =>
-    instance.get(`/post/filtered?${new URLSearchParams(params).toString()}`)
-);
-
-export const getPostDetail = withHandler<
-  PostDetailResponse[],
-  QueryFunctionContext
->(({ queryKey }) => instance.get(`/post/${queryKey[1]}`));
-
-export const getMyLostPosts = withHandler<PostResponse[]>(() =>
-  instance.get("/post/mylost")
-);
-
-export const getAnalyzedPictureResult = withHandler<AnalyzedPicture, FormData>(
-  (data) =>
-    instance.post("/post/analyze", data, {
+export const updatePost = (data: FormData) =>
+  instance
+    .put<boolean>("/post", data, {
       headers: { "Content-Type": "multipart/form-data" },
     })
-);
+    .then((res) => res.data);
+
+export const deletePost = (postId: number) =>
+  instance
+    .delete<boolean>("/post", { data: { postId } })
+    .then((res) => res.data);
+
+export const getPostsGrid = ({ pageParam = 1 }: QueryFunctionContext) =>
+  instance
+    .get<PostResponse[]>(`/post/list/${pageParam}`)
+    .then((res) => res.data);
+
+export const getPostsMap = (params: PostsMapQueryParams) =>
+  instance
+    .get<PostResponse[]>(`/post/map?${new URLSearchParams(params).toString()}`)
+    .then((res) => res.data);
+
+export const getFilteredPosts = (params: FilterParams) =>
+  instance
+    .get<PostResponse[]>(
+      `/post/filtered?${new URLSearchParams(params).toString()}`
+    )
+    .then((res) => res.data);
+
+export const getPostDetail = ({ queryKey }: QueryFunctionContext) =>
+  instance
+    .get<PostDetailResponse[]>(`/post/${queryKey[1]}`)
+    .then((res) => res.data);
+
+export const getMyLostPosts = () =>
+  instance.get<PostResponse[]>("/post/mylost").then((res) => res.data);
+
+export const getAnalyzedPictureResult = (data: FormData) =>
+  instance
+    .post<AnalyzedPicture>("/post/analyze", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((res) => res.data);
 
 // ReportController
 
-export const createReport = withHandler<boolean, ReportBody>((data) =>
-  instance.post("/report", data)
-);
+export const createReport = (data: ReportBody) =>
+  instance.post<boolean>("/report", data).then((res) => res.data);
 
 // TimelineController
 
-export const createTimeline = withHandler<boolean, TimelineBody>((data) =>
-  instance.post("/timeline", data)
-);
+export const createTimeline = (data: TimelineBody) =>
+  instance.post<boolean>("/timeline", data).then((res) => res.data);
 
-export const deleteTimeline = withHandler<boolean, TimelineBody>((data) =>
-  instance.delete("/timeline", { data })
-);
+export const deleteTimeline = (data: TimelineBody) =>
+  instance.delete<boolean>("/timeline", { data }).then((res) => res.data);
 
 // UserController
 
-export const login = withHandler<LoginResponse, { token: string }>(
-  ({ token }) => instance.get("/user/signup", { data: { kakaoToken: token } })
-);
+export const deleteAccount = () =>
+  instance.get<boolean>("/user/leaveid").then((res) => res.data);
 
-export const deleteAccount = withHandler<boolean>(() =>
-  instance.get("/user/leaveid")
-);
+export const updateNickname = (data: { nickname: string }) =>
+  instance.put<boolean>("/user/update-nickname", data).then((res) => res.data);
 
-export const updateNickname = withHandler<boolean, { nickname: string }>(
-  (data) => instance.put("/user/update-nickname", data)
-);
+export const updatePicture = (data: FormData) =>
+  instance
+    .put<boolean>("/user/update-picture", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((res) => res.data);
 
-export const updatePicture = withHandler<boolean, FormData>((data) =>
-  instance.put("/user/update-picture", data, {
-    headers: { "Content-Type": "multipart/form-data" },
-  })
-);
+export const getMe = () => instance.get<MeResponse>("/user/info");
 
-export const getMe = withHandler<MeResponse>(() => instance.get("/user/info"));
+export const getMyPosts = () =>
+  instance.get<PostResponse[]>("/user/post").then((res) => res.data);
 
-export const getMyPosts = withHandler<PostResponse[]>(() =>
-  instance.get("/user/post")
-);
+export const getMyComments = () =>
+  instance.get<MyCommentsResponse[]>("/user/comment").then((res) => res.data);
 
-export const getMyComments = withHandler<MyCommentsResponse[]>(() =>
-  instance.get("/user/comment")
-);
+export const getNotifications = () =>
+  instance.get<NotificationResponse[]>("/user/alarm");
 
-export const getNotifications = withHandler<NotificationResponse[]>(() =>
-  instance.get("/user/alarm")
-);
+export const getBookmarks = () =>
+  instance.get<PostResponse[]>("/user/bookmark").then((res) => res.data);
 
-export const getBookmarks = withHandler<PostResponse[]>(() =>
-  instance.get("/user/bookmark")
-);
+// AuthController
+
+export const getJwtToken = (code: string) =>
+  instance
+    .get<LoginResponse>(`/oauth/kakao?code=${code}`)
+    .then((res) => res.data);

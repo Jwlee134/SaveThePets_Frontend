@@ -1,7 +1,10 @@
-type Type = 1 | 2 | 3 | 4;
-
 export interface CreateCommentBody {
   postId: number;
+  content: string;
+}
+
+export interface UpdateCommentBody {
+  commentId: number;
   content: string;
 }
 
