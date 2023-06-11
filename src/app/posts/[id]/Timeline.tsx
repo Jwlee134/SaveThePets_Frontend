@@ -8,11 +8,8 @@ import TimelineMapView from "./TimelineMapView";
 import { shallow } from "zustand/shallow";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { getTimeline } from "@/libs/api/test";
 import TimelineDeleteModal from "./TimelineDeleteModal";
-import { useEffect, useState } from "react";
-
-export const post = { id: "10", lat: 37.2695704, lng: 127.105399 };
+import { getPostDetail } from "@/libs/api";
 
 export default function Timeline() {
   const isReady = useIsReady();
@@ -25,21 +22,12 @@ export default function Timeline() {
   );
   const { id } = useParams();
   const { data } = useQuery({
-    queryKey: ["posts", id, "timeline"],
-    queryFn: getTimeline,
+    queryKey: ["posts", id],
+    queryFn: getPostDetail,
+    select(data) {
+      return data.timeline;
+    },
   });
-  const [timeline, setTimeline] = useState<
-    | {
-        id: string;
-        lat: number;
-        lng: number;
-      }[]
-    | undefined
-  >();
-
-  useEffect(() => {
-    if (data) setTimeline(data);
-  }, [data]);
 
   if (!isReady) return null;
   return (
@@ -47,22 +35,13 @@ export default function Timeline() {
       <div className="flex items-center justify-between pt-8 pb-4">
         <div className="text-lg text-gray-500">타임라인</div>
         <div className="flex items-center space-x-4 text-lg">
-          {timeline && (
-            <TimelineDeleteModal
-              timeline={timeline}
-              setTimeline={setTimeline}
-            />
-          )}
+          {data && <TimelineDeleteModal />}
           <button onClick={toggle}>
             {opt === "timeline" ? <IoMapOutline /> : <IoListOutline />}
           </button>
         </div>
       </div>
-      {opt === "timeline" ? (
-        <TimelineListView timeline={timeline} />
-      ) : (
-        <TimelineMapView timeline={timeline} />
-      )}
+      {opt === "timeline" ? <TimelineListView /> : <TimelineMapView />}
     </>
   );
 }

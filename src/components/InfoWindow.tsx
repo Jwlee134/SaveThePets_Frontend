@@ -1,19 +1,37 @@
 import Image from "next/image";
 import Link from "next/link";
+import { breeds } from "@/libs/constants";
+import { formatTime } from "@/libs/utils";
 
-export default function InfoWindow({ id }: { id: string }) {
+export interface InfoWindowProps {
+  id: number;
+  picture: string;
+  species: number;
+  breed: number;
+  address: string;
+  time: string;
+}
+
+export default function InfoWindow({
+  id,
+  picture,
+  species,
+  breed,
+  address,
+  time,
+}: InfoWindowProps) {
   return (
     <Link href={`/posts/${id}`}>
       <div className="relative aspect-[3/2]">
-        <Image src="/sample.png" alt="sample" fill className="object-cover" />
+        <Image src={picture} alt="sample" fill className="object-cover" />
       </div>
       <div className="py-1 px-2">
-        <h1>Title</h1>
+        <h1>{breeds[species][breed]}</h1>
         <p className="text-gray-500 text-xs text-ellipsis overflow-hidden">
-          content1
+          {address}
         </p>
         <p className="text-gray-500 text-xs text-ellipsis overflow-hidden">
-          content2
+          {formatTime(time)}
         </p>
       </div>
     </Link>

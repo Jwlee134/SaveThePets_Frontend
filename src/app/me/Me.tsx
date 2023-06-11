@@ -1,4 +1,8 @@
+import Spinner from "@/components/Spinner";
+import { deleteAccount, getMe } from "@/libs/api";
+import useMe from "@/libs/hooks/useMe";
 import usePersistStore from "@/libs/store/usePersistStore";
+import { useMutation } from "@tanstack/react-query";
 import { Avatar, Button, Divider, Modal } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,9 +19,19 @@ import {
 export default function Me() {
   const router = useRouter();
   const setAuth = usePersistStore((state) => state.setAuth);
+  const me = useMe();
+  const { mutate, isLoading } = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: handleLogout,
+    useErrorBoundary: true,
+  });
 
   function handleLogout() {
     setAuth(null);
+  }
+
+  function handleDeleteAccount() {
+    mutate();
   }
 
   function handleRemoveClick() {
@@ -27,6 +41,7 @@ export default function Me() {
       okText: "네",
       okType: "danger",
       cancelText: "아니오",
+      onOk: handleDeleteAccount,
     });
   }
 
@@ -39,7 +54,9 @@ export default function Me() {
           className="flex justify-center items-center shrink-0"
         />
         <div className="ml-6">
-          <div className="text-2xl break-all">Username</div>
+          <div className="text-2xl break-all">
+            {me?.nickname || "Anonymous"}
+          </div>
           <Button onClick={() => router.push("/me/edit")} className="mt-4">
             수정
           </Button>
@@ -86,6 +103,11 @@ export default function Me() {
         <button onClick={handleRemoveClick} className="flex items-center">
           <IoPersonRemoveOutline className="text-lg mr-3" />
           탈퇴
+          {isLoading && (
+            <span className="ml-2">
+              <Spinner size="sm" />
+            </span>
+          )}
         </button>
       </div>
     </>

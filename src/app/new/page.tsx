@@ -1,105 +1,47 @@
 "use client";
 
-import "dayjs/locale/ko";
-import locale from "antd/es/date-picker/locale/ko_KR";
-
-import useIsReady from "@/libs/hooks/useIsReady";
-import { Button, DatePicker, Form, TimePicker } from "antd";
-import { useState } from "react";
-import { Input } from "antd";
-import FormMap from "./FormMap";
-import Photos from "./Photos";
-import { useSearchParams } from "next/navigation";
-
-const { TextArea } = Input;
-
-const table: { [key: string]: string[] } = {
-  missed: ["부가 정보", "잃어버린 시간", "잃어버린 장소"],
-  witnessed: ["부가 정보", "목격한 시간", "목격한 장소"],
-  saved: ["부가 정보", "목격한 시간", "보호중인 장소"],
-  distributed: ["반려동물 정보"],
-};
-
-export type FileObj = { data: File; id: string; url: string };
+import PostForm, { PostFormValues } from "@/components/PostForm";
+import { createPost, getAddress } from "@/libs/api";
+import { convertToType } from "@/libs/utils";
+import { useMutation } from "@tanstack/react-query";
+import { message } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function Page() {
-  const param = useSearchParams().get("type")!;
-  const isReady = useIsReady();
-  const [fileList, setFileList] = useState<FileObj[]>([]);
-  const [latLng, setLatLng] = useState<number[]>([]);
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const param = useSearchParams().get("type");
+  const router = useRouter();
+  const { mutate, isLoading } = useMutation({
+    mutationFn: createPost,
+    onSuccess(id) {
+      message.success({ content: "게시글이 생성되었습니다." });
+      router.replace(`/posts/${id}`);
+    },
+    useErrorBoundary: true,
+  });
 
-  if (!isReady) return null;
-  return (
-    <>
-      <Form
-        className="p-6"
-        labelCol={{ span: 24 }}
-        onFinish={(values) => {
-          console.log(values);
-        }}
-      >
-        <Form.Item
-          label={
-            <div>
-              사진 <span className="text-gray-400">(필수 • 최대 10장)</span>
-            </div>
-          }
-        >
-          <Photos fileList={fileList} setFileList={setFileList} />
-        </Form.Item>
-        {param !== "distributed" && (
-          <>
-            <div className="h-8 mb-2">{table[param][1]}</div>
-            <div className="grid grid-cols-2 gap-x-4">
-              <DatePicker
-                placeholder="날짜 (필수)"
-                inputReadOnly
-                className=""
-                locale={locale}
-                onChange={(date, string) => {
-                  setDate(string);
-                }}
-              />
-              <TimePicker
-                placeholder="시간 (필수)"
-                inputReadOnly
-                className=""
-                locale={locale}
-                onChange={(date, string) => {
-                  setTime(string);
-                }}
-              />
-            </div>
-            <div className="h-8 mb-2 mt-6">
-              {table[param][2]} <span className="text-gray-400">(필수)</span>
-            </div>
-            <FormMap setLatLng={setLatLng} />
-          </>
-        )}
-        <Form.Item
-          label={
-            <div>
-              {table[param][0]}{" "}
-              <span className="text-gray-400">
-                ({param === "distributed" ? "필수" : "선택"})
-              </span>
-            </div>
-          }
-          name="etc"
-        >
-          <TextArea showCount maxLength={500} className="h-32" />
-        </Form.Item>
-        <Button
-          htmlType="submit"
-          block
-          className="mt-6"
-          disabled={!fileList.length || !latLng.length || !date}
-        >
-          업로드
-        </Button>
-      </Form>
-    </>
-  );
+  async function handleSubmit(data: PostFormValues) {
+    const formData = new FormData();
+    const type = convertToType(param!);
+    for (const photo of data.photos) formData.append("pictures", photo.data);
+    formData.append("species", data.speciesBreed[0].toString());
+    formData.append("breed", data.speciesBreed[1].toString());
+    if (data.date && data.time)
+      formData.append(
+        "time",
+        new Date(
+          `${data.date.format("YYYY-MM-DD")}T${data.time.format("HH:mm:ss")}`
+        ).toISOString()
+      );
+    if (data.coords) {
+      const address = (await getAddress(data.coords[0], data.coords[1])).result;
+      formData.append("address", address);
+      formData.append("lat", data.coords[0].toString());
+      formData.append("lot", data.coords[1].toString());
+    }
+    if (data.content) formData.append("content", data.content);
+    formData.append("type", type.toString());
+    mutate(formData);
+  }
+
+  return <PostForm handleSubmit={handleSubmit} isLoading={isLoading} />;
 }

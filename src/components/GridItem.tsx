@@ -1,23 +1,30 @@
+import { PostResponse } from "@/libs/api/types";
 import Image from "next/image";
 import { IoLocationOutline, IoTimeOutline } from "react-icons/io5";
+import { breeds } from "@/libs/constants";
+import { formatTime } from "@/libs/utils";
 
-export default function GridItem() {
+export default function GridItem({
+  picture,
+  breed,
+  species,
+  address,
+  time,
+}: PostResponse) {
   return (
     <div>
       <div className="relative aspect-square rounded-md overflow-hidden">
-        <Image src="/sample.png" alt="" fill className="object-cover" />
+        <Image src={picture} alt="thumbnail" fill className="object-cover" />
       </div>
-      <h3 className="my-1">Title</h3>
+      <h3 className="my-1">{breeds[species][breed]}</h3>
       <div className="flex items-center">
         <IoLocationOutline className="shrink-0 mr-1 text-lg" />
-        <p className="overflow-hidden text-ellipsis text-sm">
-          blablablablablablablablablabla
-        </p>
+        <p className="overflow-hidden text-ellipsis text-sm">{address}</p>
       </div>
       <div className="flex items-center">
         <IoTimeOutline className="shrink-0 mr-1 text-lg" />
         <p className="overflow-hidden text-ellipsis text-sm">
-          blablablablablablablablablabla
+          {formatTime(time)}
         </p>
       </div>
     </div>

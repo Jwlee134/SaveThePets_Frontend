@@ -1,35 +1,49 @@
 import TimelineMarker from "@/components/TimelineMarker";
+import { deleteTimeline, getPostDetail } from "@/libs/api";
+import { PostDetailResponse } from "@/libs/api/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal, Timeline, TimelineItemProps, message } from "antd";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { IoTrash, IoTrashOutline } from "react-icons/io5";
 
-export default function TimelineDeleteModal({
-  timeline,
-  setTimeline,
-}: {
-  timeline:
-    | {
-        id: string;
-        lat: number;
-        lng: number;
-      }[]
-    | undefined;
-  setTimeline: Dispatch<
-    SetStateAction<
-      | {
-          id: string;
-          lat: number;
-          lng: number;
-        }[]
-      | undefined
-    >
-  >;
-}) {
+export default function TimelineDeleteModal() {
+  const queryClient = useQueryClient();
+  const { id } = useParams();
+  const { data } = useQuery({
+    queryKey: ["posts", id],
+    queryFn: getPostDetail,
+    select(data) {
+      return data.timeline;
+    },
+  });
+  const { mutate } = useMutation({
+    mutationFn: deleteTimeline,
+    useErrorBoundary: true,
+    async onMutate({ sightPostId }) {
+      await queryClient.cancelQueries({ queryKey: ["posts", id] });
+      const prevData: PostDetailResponse | undefined = queryClient.getQueryData(
+        ["posts", id]
+      );
+      queryClient.setQueryData(["posts", id], {
+        ...prevData,
+        timeline: prevData?.timeline.filter(
+          (item) => item.sightingPostId !== sightPostId
+        ),
+      });
+      return { prevData };
+    },
+    onError(error, variables, context) {
+      queryClient.setQueryData(["posts", id], context?.prevData);
+    },
+    onSettled() {
+      queryClient.invalidateQueries({ queryKey: ["posts", id] });
+    },
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   function showModal() {
-    if (timeline && !timeline.length)
-      message.warning("삭제할 타임라인이 없습니다.");
+    if (data && !data.length) message.warning("삭제할 타임라인이 없습니다.");
     else setIsModalOpen(true);
   }
 
@@ -37,13 +51,8 @@ export default function TimelineDeleteModal({
     setIsModalOpen(false);
   }
 
-  function handleCancel() {
-    setIsModalOpen(false);
-  }
-
-  const items: TimelineItemProps[] = Array(3)
-    .fill(0)
-    .map((item, i) => ({
+  const items: TimelineItemProps[] =
+    data?.map((item, i) => ({
       dot: <TimelineMarker index={i + 1} sm />,
       children: (
         <div className="flex justify-between">
@@ -54,22 +63,24 @@ export default function TimelineDeleteModal({
           <button
             className="text-red-500 text-lg"
             onClick={() => {
-              setTimeline(timeline?.filter((t) => t.id !== item.id));
+              mutate({
+                missingPostId: parseInt(id),
+                sightPostId: item.sightingPostId,
+              });
             }}
           >
             <IoTrash />
           </button>
         </div>
       ),
-    }));
+    })) || [];
 
   useEffect(() => {
-    if (timeline && timeline.length === 0) setIsModalOpen(false);
-  }, [timeline]);
+    if (data && data.length === 0) setIsModalOpen(false);
+  }, [data]);
 
   return (
     <>
-      {/* TODO: 타임라인 없으면 아예 버튼 없애기 */}
       <button onClick={showModal}>
         <IoTrashOutline />
       </button>
@@ -77,11 +88,9 @@ export default function TimelineDeleteModal({
         title="타임라인 삭제"
         open={isModalOpen}
         onOk={handleOk}
-        onCancel={handleCancel}
         centered
         okType="danger"
-        okText="전체 삭제"
-        cancelText="닫기"
+        okText="닫기"
         bodyStyle={{ maxHeight: 230, overflowY: "auto", padding: "0 12px" }}
       >
         <Timeline items={items} className="pt-5" />

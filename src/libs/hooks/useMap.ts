@@ -2,8 +2,18 @@ import { RefObject, useCallback, useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import usePersistStore from "../store/usePersistStore";
 
+export interface IdleCallbackArgs {
+  centerLat: number;
+  centerLng: number;
+  neLat: number;
+  neLng: number;
+  swLat: number;
+  swLng: number;
+  zoom: number;
+}
+
 export default function useMap(ref: RefObject<HTMLDivElement>) {
-  const idle = useRef<naver.maps.MapEventListener>();
+  const idle = useRef<naver.maps.MapEventListener | null>(null);
   const { lat, lng, zoom } = usePersistStore(
     (state) => ({
       lat: state.coords.lat,
@@ -21,20 +31,40 @@ export default function useMap(ref: RefObject<HTMLDivElement>) {
   }, []);
 
   const registerIdleEvent = useCallback(
-    (cb: (lat: number, lng: number, zoom: number) => void) => {
+    (cb: (arg: IdleCallbackArgs) => void, executeCallbackOnInit?: boolean) => {
+      if (!map.current) return;
+      if (executeCallbackOnInit) {
+        const zoom = map.current.getZoom();
+        const bounds = map.current.getBounds();
+        const center = bounds.getCenter();
+        const ne = bounds.getMax();
+        const sw = bounds.getMin();
+        cb({
+          centerLat: center.y,
+          centerLng: center.x,
+          neLat: ne.y,
+          neLng: ne.x,
+          swLat: sw.y,
+          swLng: sw.x,
+          zoom,
+        });
+      }
       idle.current = naver.maps.Event.addListener(map.current, "idle", (e) => {
-        if (!map.current) return;
         const {
           __targets: {
             zoom: {
               target: {
                 zoom,
-                center: { _lat, _lng },
+                bounds: {
+                  _ne: { _lat: neLat, _lng: neLng },
+                  _sw: { _lat: swLat, _lng: swLng },
+                },
+                center: { _lat: centerLat, _lng: centerLng },
               },
             },
           },
         } = e;
-        cb(_lat, _lng, zoom);
+        cb({ centerLat, centerLng, neLat, neLng, swLat, swLng, zoom });
       });
     },
     []
@@ -43,7 +73,7 @@ export default function useMap(ref: RefObject<HTMLDivElement>) {
   const unregisterIdleEvent = useCallback(() => {
     if (idle.current) {
       naver.maps.Event.removeListener(idle.current);
-      idle.current = undefined;
+      idle.current = null;
     }
   }, []);
 
