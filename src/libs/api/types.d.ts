@@ -1,5 +1,6 @@
 export interface CreateCommentBody {
   postId: number;
+  userId: string;
   content: string;
 }
 
@@ -18,16 +19,17 @@ export interface PostResponse {
   species: number;
   breed: number;
   picture: string;
+  address: string;
 }
 
 export interface PostsMapQueryParams {
-  [key: string]: string;
-  userLat: string;
-  userLot: string;
-  rightUpLat: string;
-  rightUpLot: string;
-  leftDownlat: string;
-  leftDownlot: string;
+  [key: string]: number;
+  userLat: number;
+  userLot: number;
+  rightUpLat: number;
+  rightUpLot: number;
+  leftDownlat: number;
+  leftDownlot: number;
 }
 
 export interface FilterParams {
@@ -47,6 +49,7 @@ export interface CommentResponse {
   nickname: string;
   content: string;
   picture: string;
+  timestamp: string;
 }
 
 export interface TimelineResponse {
@@ -57,6 +60,7 @@ export interface TimelineResponse {
   species: number;
   breed: number;
   picture: string;
+  address: string;
 }
 
 export interface TimelineBody {
@@ -65,6 +69,9 @@ export interface TimelineBody {
 }
 
 export interface PostDetailResponse {
+  userId: string;
+  nickname: string;
+  profilePicture: string;
   species: number;
   breed: number;
   content: string;
@@ -74,6 +81,9 @@ export interface PostDetailResponse {
   pictures: string[];
   comments: CommentResponse[];
   timeline: TimelineResponse[];
+  lat: number;
+  lot: number;
+  address: string;
 }
 
 export interface AnalyzedPicture {
@@ -122,4 +132,10 @@ export interface NotificationResponse {
   breed: number;
   timestamp: string;
   type: Type;
+}
+
+export interface PushSubscriptionBody {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
 }

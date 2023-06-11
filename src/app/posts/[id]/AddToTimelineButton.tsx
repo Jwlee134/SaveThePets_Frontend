@@ -1,11 +1,20 @@
-import { Modal, Radio, RadioChangeEvent, Spin, message } from "antd";
+import Spinner from "@/components/Spinner";
+import { getMyLostPosts } from "@/libs/api";
+import { useQuery } from "@tanstack/react-query";
+import { Modal, Radio, RadioChangeEvent, message } from "antd";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IoAddCircleOutline } from "react-icons/io5";
 
 export default function AddToTimelineButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [value, setValue] = useState(1);
+  const [clicked, setClicked] = useState(false);
+  const { data, isLoading } = useQuery({
+    queryKey: ["posts", "myLost"],
+    queryFn: getMyLostPosts,
+    enabled: clicked,
+  });
 
   function onChange(e: RadioChangeEvent) {
     console.log("radio checked", e.target.value);
@@ -25,15 +34,20 @@ export default function AddToTimelineButton() {
   }
 
   function handleAddClick() {
-    /* message.warning("작성한 실종 게시글이 없습니다.") */
-    showModal();
+    setClicked(true);
   }
+
+  useEffect(() => {
+    if (!data) return;
+    if (!data.length)
+      message.warning({ content: "작성한 실종 게시글이 없습니다." });
+    else showModal();
+  }, [data]);
 
   return (
     <>
-      {/* <Spin size="small" /> */}
-      <button onClick={handleAddClick}>
-        <IoAddCircleOutline />
+      <button disabled={isLoading} onClick={handleAddClick}>
+        {isLoading ? <Spinner size="sm" /> : <IoAddCircleOutline />}
       </button>
       <Modal
         title="타임라인에 추가"

@@ -23,7 +23,7 @@ const instance = axios.create({ baseURL: "http://localhost:8080" });
 
 instance.interceptors.request.use((config) => {
   const token = usePersistStore.getState().auth.token;
-  if (token) config.headers.Authorization = token;
+  if (token) config.headers["token"] = token;
   return config;
 });
 
@@ -46,10 +46,10 @@ export const deleteNotification = (alarmId: number) =>
 
 // BookmarkController
 
-export const createBookmark = (postId: number) =>
+export const createBookmark = (postId: string) =>
   instance.post<boolean>("/bookmark", { postId }).then((res) => res.data);
 
-export const deleteBookmark = (postId: number) =>
+export const deleteBookmark = (postId: string) =>
   instance
     .delete<boolean>("/bookmark", { data: { postId } })
     .then((res) => res.data);
@@ -70,14 +70,15 @@ export const deleteComment = (commentId: number) =>
 // PostController
 
 /**
- * @property content 부가 정보 또는 반려동물 정보: string
- * @property pictures 사진 배열: File[]
- * @property species 종: number
- * @property breed 품종: number
- * @property time 실종/목격/보호 시간: string
- * @property lat 위도: number
- * @property lot 경도: number
- * @property type 실종: 0, 목격: 1, 보호: 2, 분양: 3
+ * @property {string} content
+ * @property {File[]} pictures
+ * @property {number} species
+ * @property {number} breed
+ * @property {string} time
+ * @property {number} lat
+ * @property {number} lot
+ * @property {string} address
+ * @property {number} type - 0: 실종, 1: 목격, 2: 보호, 3: 분양
  */
 export const createPost = (data: FormData) =>
   instance
@@ -87,14 +88,16 @@ export const createPost = (data: FormData) =>
     .then((res) => res.data);
 
 /**
- * @property content 부가 정보 또는 반려동물 정보: string
- * @property pictures 사진 배열: File[]
- * @property species 종: number
- * @property breed 품종: number
- * @property time 실종/목격/보호 시간: string
- * @property lat 위도: number
- * @property lot 경도: number
- * @property type 실종: 0, 목격: 1, 보호: 2, 분양: 3
+ * @property {number} postId
+ * @property {string} content
+ * @property {File[]} pictures
+ * @property {number} species
+ * @property {number} breed
+ * @property {string} time
+ * @property {number} postLat
+ * @property {number} postLot
+ * @property {string} address
+ * @property {number} type - 0: 실종, 1: 목격, 2: 보호, 3: 분양
  */
 export const updatePost = (data: FormData) =>
   instance
@@ -103,7 +106,7 @@ export const updatePost = (data: FormData) =>
     })
     .then((res) => res.data);
 
-export const deletePost = (postId: number) =>
+export const deletePost = (postId: string) =>
   instance
     .delete<boolean>("/post", { data: { postId } })
     .then((res) => res.data);
@@ -113,21 +116,19 @@ export const getPostsGrid = ({ pageParam = 1 }: QueryFunctionContext) =>
     .get<PostResponse[]>(`/post/list/${pageParam}`)
     .then((res) => res.data);
 
-export const getPostsMap = (params: PostsMapQueryParams) =>
+export const getPostsMap = ({ queryKey }: QueryFunctionContext) =>
   instance
-    .get<PostResponse[]>(`/post/map?${new URLSearchParams(params).toString()}`)
+    .get<PostResponse[]>(`/post/map?${queryKey[2]}`)
     .then((res) => res.data);
 
-export const getFilteredPosts = (params: FilterParams) =>
+export const getFilteredPosts = ({ queryKey }: QueryFunctionContext) =>
   instance
-    .get<PostResponse[]>(
-      `/post/filtered?${new URLSearchParams(params).toString()}`
-    )
+    .get<PostResponse[]>(`/post/filtered?${queryKey[1]}`)
     .then((res) => res.data);
 
 export const getPostDetail = ({ queryKey }: QueryFunctionContext) =>
   instance
-    .get<PostDetailResponse[]>(`/post/${queryKey[1]}`)
+    .get<PostDetailResponse>(`/post/${queryKey[1]}`)
     .then((res) => res.data);
 
 export const getMyLostPosts = () =>
@@ -158,17 +159,20 @@ export const deleteTimeline = (data: TimelineBody) =>
 export const deleteAccount = () =>
   instance.get<boolean>("/user/leaveid").then((res) => res.data);
 
-export const updateNickname = (data: { nickname: string }) =>
-  instance.put<boolean>("/user/update-nickname", data).then((res) => res.data);
+export const updateNickname = (nickname: string) =>
+  instance
+    .put<boolean>("/user/update-nickname", { nickname })
+    .then((res) => res.data);
 
-export const updatePicture = (data: FormData) =>
+export const updateAvatar = (data: FormData) =>
   instance
     .put<boolean>("/user/update-picture", data, {
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((res) => res.data);
 
-export const getMe = () => instance.get<MeResponse>("/user/info");
+export const getMe = () =>
+  instance.get<MeResponse>("/user/info").then((res) => res.data);
 
 export const getMyPosts = () =>
   instance.get<PostResponse[]>("/user/post").then((res) => res.data);
@@ -177,7 +181,7 @@ export const getMyComments = () =>
   instance.get<MyCommentsResponse[]>("/user/comment").then((res) => res.data);
 
 export const getNotifications = () =>
-  instance.get<NotificationResponse[]>("/user/alarm");
+  instance.get<NotificationResponse[]>("/user/alarm").then((res) => res.data);
 
 export const getBookmarks = () =>
   instance.get<PostResponse[]>("/user/bookmark").then((res) => res.data);
@@ -187,4 +191,11 @@ export const getBookmarks = () =>
 export const getJwtToken = (code: string) =>
   instance
     .get<LoginResponse>(`/oauth/kakao?code=${code}`)
+    .then((res) => res.data);
+
+// Reverse Geocoding
+
+export const getAddress = (lat: number, lng: number) =>
+  axios
+    .get<{ result: string }>(`/api/address?lat=${lat}&lng=${lng}`)
     .then((res) => res.data);

@@ -7,6 +7,8 @@ import {
 } from "react";
 import { hideMarker, hidePolyline } from "../utils";
 import { useParams } from "next/navigation";
+import { InfoWindowProps } from "@/components/InfoWindow";
+import { TimelineResponse } from "../api/types";
 
 export default function useTimeline(
   map: MutableRefObject<naver.maps.Map | undefined>,
@@ -22,7 +24,7 @@ export default function useTimeline(
   const infoWindow = useRef<naver.maps.InfoWindow>();
   const [infoWindowObj, setInfoWindowObj] = useState<{
     node: HTMLElement;
-    id: string;
+    data: InfoWindowProps;
   } | null>(null);
 
   const resetInfoWindow = useCallback(() => {
@@ -32,7 +34,7 @@ export default function useTimeline(
   }, []);
 
   const openInfoWindow = useCallback(
-    (anchor: naver.maps.Marker | naver.maps.Coord, id: string) => {
+    (anchor: naver.maps.Marker | naver.maps.Coord, data: InfoWindowProps) => {
       if (!infoWindow.current) {
         infoWindow.current = new naver.maps.InfoWindow({
           content: "<div id='infowindow' class='infowindow' />",
@@ -44,7 +46,7 @@ export default function useTimeline(
       }
       infoWindow.current?.open(map.current!, anchor);
       const node = document.getElementById("infowindow");
-      if (node) setInfoWindowObj({ node, id });
+      if (node) setInfoWindowObj({ node, data });
     },
     [map]
   );
@@ -116,17 +118,15 @@ export default function useTimeline(
   );
 
   const setTimelineMarkers = useCallback(
-    (
-      data: {
-        id: string;
-        lat: number;
-        lng: number;
-      }[]
-    ) => {
+    (data: TimelineResponse[]) => {
       // 데이터의 길이가 더 적다면(타임라인 마커를 삭제했을 때) 삭제된 타임라인 마커 제거
       if (data.length < timelineMarkers.current.length) {
         timelineMarkers.current = timelineMarkers.current.filter((mk) => {
-          if (!data.some((item) => item.id === mk.getTitle())) {
+          if (
+            !data.some(
+              (item) => item.sightingPostId.toString() === mk.getTitle()
+            )
+          ) {
             resetInfoWindow();
             mk.setMap(null);
             return false;
@@ -138,44 +138,65 @@ export default function useTimeline(
       data
         .filter(
           // 이미 존재하는 타임라인 마커의 중복 생성 방지 위해 filter
-          (item) =>
-            !timelineMarkers.current.some((mk) => item.id === mk.getTitle())
+          ({ sightingPostId }) =>
+            !timelineMarkers.current.some(
+              (mk) => sightingPostId.toString() === mk.getTitle()
+            )
         )
-        .forEach((coord, i) => {
-          const size =
-            (params.id && params.id === coord.id) || (!params.id && i === 0)
-              ? 36
-              : 28;
-          const anchor =
-            (params.id && params.id === coord.id) || (!params.id && i === 0)
-              ? 18
-              : 14;
-          // 마커 생성
-          const marker = new naver.maps.Marker({
-            position: new naver.maps.LatLng(coord.lat, coord.lng),
-            map: map.current,
-            icon: {
-              content: `<div id="${coord.id}" />`,
-              size: new naver.maps.Size(size, size),
-              anchor: new naver.maps.Point(anchor, anchor),
+        .forEach(
+          (
+            {
+              sightingPostId,
+              postLat,
+              postLot,
+              breed,
+              species,
+              time,
+              picture,
+              address,
             },
-            title: coord.id,
-          });
-          // 각 마커 클릭시 인포윈도우 생성 이벤트 추가
-          naver.maps.Event.addListener(marker, "click", () => {
-            openInfoWindow(
-              new naver.maps.Point(
-                marker.getPosition().x,
-                marker.getPosition().y
-              ),
-              coord.id
-            );
-          });
-          timelineMarkers.current.push(marker);
-          const node = document.getElementById(coord.id);
-          if (node)
-            setTimelineNodesArr((prev) => [...prev, { id: coord.id, node }]);
-        });
+            i
+          ) => {
+            const size =
+              (params.id && params.id === sightingPostId.toString()) ||
+              (!params.id && i === 0)
+                ? 36
+                : 28;
+            const anchor =
+              (params.id && params.id === sightingPostId.toString()) ||
+              (!params.id && i === 0)
+                ? 18
+                : 14;
+            // 마커 생성
+            const marker = new naver.maps.Marker({
+              position: new naver.maps.LatLng(postLat, postLot),
+              map: map.current,
+              icon: {
+                content: `<div id="${sightingPostId}" />`,
+                size: new naver.maps.Size(size, size),
+                anchor: new naver.maps.Point(anchor, anchor),
+              },
+              title: sightingPostId.toString(),
+            });
+            // 각 마커 클릭시 인포윈도우 생성 이벤트 추가
+            naver.maps.Event.addListener(marker, "click", () => {
+              openInfoWindow(
+                new naver.maps.Point(
+                  marker.getPosition().x,
+                  marker.getPosition().y
+                ),
+                { address, breed, id: sightingPostId, picture, species, time }
+              );
+            });
+            timelineMarkers.current.push(marker);
+            const node = document.getElementById(sightingPostId.toString());
+            if (node)
+              setTimelineNodesArr((prev) => [
+                ...prev,
+                { id: sightingPostId.toString(), node },
+              ]);
+          }
+        );
       // 마커 2개 이상이면 폴리라인으로 연결하고 줌
       if (timelineMarkers.current.length > 1) {
         makePolylines(timelineMarkers.current);

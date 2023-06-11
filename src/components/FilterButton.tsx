@@ -19,12 +19,8 @@ import Spinner from "./Spinner";
 import { useRouter, useSearchParams } from "next/navigation";
 import usePersistStore from "@/libs/store/usePersistStore";
 import { shallow } from "zustand/shallow";
-
-interface CascaderOption {
-  value: string | number;
-  label: string;
-  children?: CascaderOption[];
-}
+import { speciesBreedsOption } from "@/libs/constants";
+import { createSearchParams } from "@/libs/utils";
 
 const checkboxOptions = [
   { label: "실종", value: "0" },
@@ -32,41 +28,6 @@ const checkboxOptions = [
   { label: "보호", value: "2" },
   { label: "분양", value: "3" },
 ];
-
-const cascaderOptions: CascaderOption[] = [
-  {
-    value: "0",
-    label: "개",
-    children: [
-      { value: "0", label: "말티즈" },
-      { value: "1", label: "치와와" },
-    ],
-  },
-  {
-    value: "1",
-    label: "고양이",
-    children: [
-      { value: "0", label: "노르웨이숲" },
-      { value: "1", label: "코리안숏헤어" },
-    ],
-  },
-];
-
-function createSearchParams(params: {
-  [key: string]: string | string[];
-}): URLSearchParams {
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, values]) => {
-    if (Array.isArray(values)) {
-      values.forEach((value) => {
-        searchParams.append(key, value);
-      });
-    } else {
-      searchParams.append(key, values);
-    }
-  });
-  return searchParams;
-}
 
 export default function FilterButton() {
   const { view, lat, lng } = usePersistStore(
@@ -139,7 +100,7 @@ export default function FilterButton() {
       }),
     };
     const queryString = createSearchParams(values).toString();
-    // TODO: API 요청
+    // TODO: API 요청, int type은 없으면 -1 줘야함
     router.replace(`/?${queryString}`);
     setIsModalOpen(false);
   }
@@ -183,7 +144,7 @@ export default function FilterButton() {
             />
           </Form.Item>
           <Form.Item name="speciesBreed" label="종 및 품종">
-            <Cascader options={cascaderOptions} changeOnSelect />
+            <Cascader options={speciesBreedsOption} changeOnSelect />
           </Form.Item>
           <div className="flex justify-between">
             <Form.Item

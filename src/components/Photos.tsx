@@ -22,7 +22,9 @@ export default function Photos() {
         return { data: file, id: `${file.name}-${file.size}`, url: thumbUrl };
       })
     );
-    form.setFieldValue("photos", [...fileList, ...newFileList]);
+    form.setFields([
+      { name: "photos", errors: [], value: [...fileList, ...newFileList] },
+    ]);
   }
 
   function onDeleteClick(file: FileObj) {

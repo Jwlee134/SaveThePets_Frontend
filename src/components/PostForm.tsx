@@ -10,62 +10,33 @@ import Photos from "./Photos";
 import FormMap from "./FormMap";
 import useBoundStore from "@/libs/store";
 import { shallow } from "zustand/shallow";
+import { postFormTable, speciesBreedsOption } from "@/libs/constants";
 
 export interface PostFormValues {
   date: dayjs.Dayjs;
   time: dayjs.Dayjs;
-  etc: string;
-  speciesBreed: string[];
+  content: string;
+  speciesBreed: number[];
   photos: FileObj[];
   coords: number[];
 }
 
 export type FileObj = { data: File; id: string; url: string };
 
-interface CascaderOption {
-  value: string | number;
-  label: string;
-  children?: CascaderOption[];
-}
-
 const { TextArea } = Input;
-
-const table: { [key: string]: string[] } = {
-  missed: ["부가 정보", "잃어버린 시간", "잃어버린 장소"],
-  witnessed: ["부가 정보", "목격한 시간", "목격한 장소"],
-  saved: ["부가 정보", "목격한 시간", "보호중인 장소"],
-  distributed: ["반려동물 정보"],
-};
-
-const cascaderOptions: CascaderOption[] = [
-  {
-    value: 0,
-    label: "개",
-    children: [
-      { value: 0, label: "말티즈" },
-      { value: 1, label: "치와와" },
-    ],
-  },
-  {
-    value: 1,
-    label: "고양이",
-    children: [
-      { value: 0, label: "노르웨이숲" },
-      { value: 1, label: "코리안숏헤어" },
-    ],
-  },
-];
 
 interface PostFormProps {
   buttonText?: string;
   initialFileList?: FileObj[];
   handleSubmit: (data: PostFormValues) => void;
+  isLoading: boolean;
 }
 
 export default function PostForm({
   buttonText = "업로드",
   initialFileList,
   handleSubmit,
+  isLoading,
 }: PostFormProps) {
   const {
     time: initialTime,
@@ -82,12 +53,7 @@ export default function PostForm({
     shallow
   );
   const [form] = Form.useForm<PostFormValues>();
-  const fileList = Form.useWatch("photos", form);
-  const coords = Form.useWatch("coords", form);
-  const date = Form.useWatch("date", form);
-  const time = Form.useWatch("time", form);
   const param = useSearchParams().get("type")!;
-  const disableButton = !fileList?.length || !coords?.length || !date || !time;
 
   useEffect(() => {
     if (initialFileList) form.setFieldValue("photos", initialFileList);
@@ -101,10 +67,13 @@ export default function PostForm({
         initialValues={{
           ...(initialTime && { date: dayjs(initialTime) }),
           ...(initialTime && { time: dayjs(initialTime) }),
-          ...(content && { etc: content }),
+          ...(content && { content }),
           ...(species !== null && {
             speciesBreed: [species, ...(breed !== null ? [breed] : [])],
           }),
+        }}
+        onFinish={(v) => {
+          handleSubmit(v);
         }}
       >
         <Form.Item
@@ -114,34 +83,66 @@ export default function PostForm({
               사진 <span className="text-gray-400">(필수 • 최대 10장)</span>
             </div>
           }
+          rules={[
+            {
+              required: true,
+              message: "필수 항목입니다.",
+              validator(_, value) {
+                if (!value)
+                  return Promise.reject(new Error("필수 항목입니다."));
+                return Promise.resolve();
+              },
+            },
+          ]}
         >
           <Photos />
         </Form.Item>
         {param !== "distributed" && (
           <>
             <Form.Item name="speciesBreed" label="종 및 품종">
-              <Cascader options={cascaderOptions} changeOnSelect />
+              <Cascader options={speciesBreedsOption} changeOnSelect />
             </Form.Item>
             <Form.Item
               label={
                 <div>
-                  {table[param][1]}{" "}
+                  {postFormTable[param][1]}{" "}
                   <span className="text-gray-400">(필수)</span>
                 </div>
               }
               className="mb-0"
             >
-              <Form.Item name="date" className="inline-block w-full">
+              <Form.Item
+                name="date"
+                className="inline-block w-full"
+                rules={[{ required: true, message: "필수 항목입니다." }]}
+              >
                 <DatePicker className="w-full" locale={locale} inputReadOnly />
               </Form.Item>
-              <Form.Item name="time" className="inline-block w-full">
+              <Form.Item
+                name="time"
+                className="inline-block w-full"
+                rules={[{ required: true, message: "필수 항목입니다." }]}
+              >
                 <TimePicker className="w-full" locale={locale} inputReadOnly />
               </Form.Item>
             </Form.Item>
             <div className="h-8 mb-2">
-              {table[param][2]} <span className="text-gray-400">(필수)</span>
+              {postFormTable[param][2]}{" "}
+              <span className="text-gray-400">(필수)</span>
             </div>
-            <Form.Item name="coords">
+            <Form.Item
+              name="coords"
+              rules={[
+                {
+                  required: true,
+                  validator(_, value) {
+                    if (!value)
+                      return Promise.reject(new Error("필수 항목입니다."));
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
               <FormMap />
             </Form.Item>
           </>
@@ -149,23 +150,22 @@ export default function PostForm({
         <Form.Item
           label={
             <div>
-              {table[param][0]}{" "}
+              {postFormTable[param][0]}{" "}
               <span className="text-gray-400">
                 ({param === "distributed" ? "필수" : "선택"})
               </span>
             </div>
           }
-          name="etc"
+          name="content"
+          rules={
+            param === "distributed"
+              ? [{ required: true, message: "필수 항목입니다." }]
+              : undefined
+          }
         >
           <TextArea showCount maxLength={500} className="h-32" />
         </Form.Item>
-        <Button
-          htmlType="submit"
-          block
-          className="mt-6"
-          disabled={disableButton}
-          onClick={() => handleSubmit(form.getFieldsValue())}
-        >
+        <Button htmlType="submit" block className="mt-6" loading={isLoading}>
           {buttonText}
         </Button>
       </Form>

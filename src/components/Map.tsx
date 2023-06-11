@@ -12,11 +12,12 @@ import { hideMarker, showMarker } from "@/libs/utils";
 import useTimeline from "@/libs/hooks/useTimeline";
 import usePersistStore from "@/libs/store/usePersistStore";
 import MyLocationButton from "./MyLocationButton";
-import { getPosts, getTimeline } from "@/libs/api/test";
 import { createPortal } from "react-dom";
 import TimelineMarker from "./TimelineMarker";
 import InfoWindow from "./InfoWindow";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getFilteredPosts, getPostDetail, getPostsMap } from "@/libs/api";
+import { PostResponse } from "@/libs/api/types";
 
 export default function Map() {
   const ref = useRef<HTMLDivElement>(null);
@@ -32,30 +33,29 @@ export default function Map() {
   } = useTimeline(map, panToBounds);
   const setCoords = usePersistStore((state) => state.setCoords);
   const searchParams = useSearchParams();
+  // 쿼리스트링 생기면 필터 모달에서 필터 설정 후 router.replace() 호출했다는 것이므로 필터 API 활성화
   const filterEnabled = !!searchParams.toString();
   const router = useRouter();
   const markers = useRef<naver.maps.Marker[]>([]);
-  const clickedMarker = useRef<{ id: string; lat: number; lng: number } | null>(
-    null
-  );
+  const clickedMarker = useRef<PostResponse | null>(null);
   const [markerNodesArr, setMarkerNodesArr] = useState<
     { id: string; node: HTMLElement; thumbUrl: string }[]
   >([]);
   const [clickedId, setClickedId] = useState(0);
 
   const { data: posts, refetch: fetchPosts } = useQuery({
-    queryKey: ["posts"],
-    queryFn: getPosts,
+    queryKey: ["posts", "map"],
+    queryFn: getPostsMap,
     enabled: false,
   });
   const { data: filteredPosts } = useQuery({
     queryKey: ["posts", searchParams.toString()],
-    queryFn: getPosts,
+    queryFn: getFilteredPosts,
     enabled: filterEnabled,
   });
-  const { data: timeline } = useQuery({
-    queryKey: ["posts", clickedId, "timeline"],
-    queryFn: getTimeline,
+  const { data: detail } = useQuery({
+    queryKey: ["posts", clickedId],
+    queryFn: getPostDetail,
     enabled: !!clickedId,
   });
 
@@ -70,13 +70,34 @@ export default function Map() {
   }, [map]);
 
   const idleEventCallback = useCallback(
-    ({ centerLat, centerLng, zoom }: IdleCallbackArgs) => {
+    ({
+      centerLat,
+      centerLng,
+      neLat,
+      neLng,
+      swLat,
+      swLng,
+      zoom,
+    }: IdleCallbackArgs) => {
       setCoords(
         Number(centerLat.toFixed(6)),
         Number(centerLng.toFixed(6)),
         zoom
       );
-      fetchPosts();
+      fetchPosts({
+        queryKey: [
+          "posts",
+          "map",
+          new URLSearchParams({
+            centerLat: centerLat.toFixed(6),
+            centerLng: centerLng.toFixed(6),
+            rightUpLat: neLat.toFixed(6),
+            rightUpLot: neLng.toFixed(6),
+            leftDownlat: swLat.toFixed(6),
+            leftDownlot: swLng.toFixed(6),
+          }).toString(),
+        ],
+      });
       showVisibleMarkersOnly();
     },
     [setCoords, fetchPosts, showVisibleMarkersOnly]
@@ -99,17 +120,15 @@ export default function Map() {
   );
 
   function setMarkers(
-    data: {
-      id: string;
-      lat: number;
-      lng: number;
-    }[],
+    data: PostResponse[],
     map: naver.maps.Map,
     markers: MutableRefObject<naver.maps.Marker[]>
   ) {
     // 새로 받아온 데이터에 기존 마커와 동일한 데이터가 없다면 삭제
     markers.current = markers.current.filter((mk, i) => {
-      const idx = data.findIndex((item) => item.id === mk.getTitle());
+      const idx = data.findIndex(
+        (item) => item.postId.toString() === mk.getTitle()
+      );
       if (idx == -1) {
         markers.current[i].setMap(null);
         setMarkerNodesArr((prev) => {
@@ -124,27 +143,30 @@ export default function Map() {
     data
       .filter(
         // 이미 존재하는 마커의 중복 생성 방지 위해 filter
-        (item) => !markers.current.some((mk) => item.id === mk.getTitle())
+        (post) =>
+          !markers.current.some(
+            (mk) => post.postId.toString() === mk.getTitle()
+          )
       )
-      .forEach((coord) => {
+      .forEach((post) => {
         const marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(coord.lat, coord.lng),
+          position: new naver.maps.LatLng(post.postLat, post.postLot),
           map,
           icon: {
-            content: `<div id="${coord.id}" />`,
+            content: `<div id="${post.postId}" />`,
             size: new naver.maps.Size(72, 72),
             anchor: new naver.maps.Point(36, 72),
           },
-          title: coord.id,
+          title: post.postId.toString(),
         });
-        const node = document.getElementById(coord.id);
+        const node = document.getElementById(post.postId.toString());
         if (node)
           setMarkerNodesArr((prev) => [
             ...prev,
-            { id: coord.id, node, thumbUrl: "/sample.png" },
+            { id: post.postId.toString(), node, thumbUrl: post.picture },
           ]);
         naver.maps.Event.addListener(marker, "click", () => {
-          clickedMarker.current = coord;
+          clickedMarker.current = post;
           setClickedId(parseInt(marker.getTitle()));
         });
         markers.current.push(marker);
@@ -153,17 +175,32 @@ export default function Map() {
 
   // 마커 클릭 시 타임라인 보여주며 클릭된 마커의 인포윈도우 생성
   useEffect(() => {
-    if (!timeline || !clickedMarker.current) return;
+    if (!detail || !clickedMarker.current) return;
     unregisterIdleEvent();
     markers.current.forEach(hideMarker);
-    openInfoWindow(
-      new naver.maps.LatLng(
-        clickedMarker.current.lat,
-        clickedMarker.current.lng
-      ),
-      clickedMarker.current.id
-    );
-    setTimelineMarkers([clickedMarker.current, ...timeline])({
+    const { address, breed, picture, postId, species, time, postLat, postLot } =
+      clickedMarker.current;
+    openInfoWindow(new naver.maps.LatLng(postLat, postLot), {
+      address,
+      breed,
+      species,
+      id: postId,
+      picture,
+      time,
+    });
+    setTimelineMarkers([
+      {
+        address,
+        breed,
+        picture,
+        sightingPostId: postId,
+        species,
+        time,
+        postLat,
+        postLot,
+      },
+      ...detail.timeline,
+    ])({
       customResetAction: () => {
         markers.current.forEach((mk) => showMarker(map, mk));
         registerIdleEvent(
@@ -185,7 +222,7 @@ export default function Map() {
     };
   }, [
     map,
-    timeline,
+    detail,
     filterEnabled,
     openInfoWindow,
     setTimelineMarkers,
@@ -251,7 +288,10 @@ export default function Map() {
           createPortal(<TimelineMarker index={i} />, node, id)
         )}
       {infoWindowObj !== null &&
-        createPortal(<InfoWindow id={infoWindowObj.id} />, infoWindowObj.node)}
+        createPortal(
+          <InfoWindow {...infoWindowObj.data} />,
+          infoWindowObj.node
+        )}
     </div>
   );
 }

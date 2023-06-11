@@ -1,42 +1,55 @@
+import { deletePost, getPostDetail } from "@/libs/api";
 import useIsReady from "@/libs/hooks/useIsReady";
 import useBoundStore from "@/libs/store";
 import usePersistStore from "@/libs/store/usePersistStore";
-import { Dropdown, Modal } from "antd";
+import { convertFromType } from "@/libs/utils";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Dropdown, Modal, message } from "antd";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoMenuOutline } from "react-icons/io5";
 
 export default function PostDropdown() {
   const router = useRouter();
-  const params = useParams();
+  const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setValues = useBoundStore(({ postForm }) => postForm.setValues);
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const isReady = useIsReady();
+  const { data } = useQuery({
+    queryFn: getPostDetail,
+    queryKey: ["posts", id],
+  });
+  const { mutate, isLoading } = useMutation({
+    mutationFn: () => deletePost(id),
+    useErrorBoundary: true,
+    onSuccess() {
+      message.success({ content: "게시글이 삭제되었습니다." });
+      router.back();
+    },
+    onSettled: handleClose,
+  });
 
   function showModal() {
     setIsModalOpen(true);
   }
 
-  async function handleOk() {
-    setIsModalOpen(false);
-  }
-
-  function handleCancel() {
+  function handleClose() {
     setIsModalOpen(false);
   }
 
   function handleEditClick() {
+    if (!data) return;
     setValues({
-      photos: ["/sample1.jpg", "/sample2.jpg", "/sample3.jpg"],
-      lat: 35.822507,
-      lng: 128.758031,
-      time: new Date().toISOString(),
-      content: "asdf",
-      species: 0,
-      breed: 0,
+      photos: data.pictures,
+      ...(data.time && { time: data.time }),
+      ...(data.content && { content: data.content }),
+      ...(data.species && { species: data.species }),
+      ...(data.breed && { breed: data.breed }),
+      ...(data.lat && { lat: data.lat }),
+      ...(data.lot && { lng: data.lot }),
     });
-    router.push(`/posts/${params.id}/edit?type=missed`);
+    router.push(`/posts/${id}/edit?type=${convertFromType(data.type)}`);
   }
 
   if (!isReady || !isLoggedIn) return null;
@@ -58,7 +71,7 @@ export default function PostDropdown() {
             {
               label: "신고",
               key: "2",
-              onClick: () => router.push(`/posts/${params.id}/report`),
+              onClick: () => router.push(`/posts/${id}/report`),
             },
           ],
         }}
@@ -68,11 +81,12 @@ export default function PostDropdown() {
       <Modal
         title="정말 삭제하시겠습니까?"
         open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
+        onOk={() => mutate()}
+        onCancel={handleClose}
         okText="삭제"
         okType="danger"
         cancelText="취소"
+        confirmLoading={isLoading}
       >
         <p>이 작업은 되돌릴 수 없습니다.</p>
       </Modal>

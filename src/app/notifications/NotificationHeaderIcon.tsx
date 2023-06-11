@@ -1,20 +1,11 @@
 "use client";
 
-import { getNotifications } from "@/libs/api/test";
 import useBoundStore from "@/libs/store";
-import { useQuery } from "@tanstack/react-query";
-import { Button, Modal } from "antd";
+import { Button } from "antd";
 import { IoTrashOutline } from "react-icons/io5";
 import { shallow } from "zustand/shallow";
 
 export default function NotificationHeaderIcon() {
-  const { data } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: getNotifications,
-    select(data) {
-      return data.map((item) => item.id);
-    },
-  });
   const { isEmpty, isDeleteMode, setIsEmpty, toggleDeleteMode } = useBoundStore(
     ({ notification }) => ({
       isEmpty: notification.isEmpty,
@@ -25,7 +16,7 @@ export default function NotificationHeaderIcon() {
     shallow
   );
 
-  function onDeleteAllClick() {
+  /*   function onDeleteAllClick() {
     Modal.confirm({
       title: "전체 삭제하시겠어요?",
       okText: "삭제",
@@ -36,7 +27,7 @@ export default function NotificationHeaderIcon() {
         setIsEmpty(true);
       },
     });
-  }
+  } */
 
   if (isEmpty) return null;
   return (
@@ -46,9 +37,9 @@ export default function NotificationHeaderIcon() {
           <Button type="text" size="small" onClick={toggleDeleteMode}>
             완료
           </Button>
-          <Button type="text" size="small" danger onClick={onDeleteAllClick}>
+          {/* <Button type="text" size="small" danger onClick={onDeleteAllClick}>
             전체 삭제
-          </Button>
+          </Button> */}
         </>
       ) : (
         <button onClick={toggleDeleteMode}>

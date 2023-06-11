@@ -1,12 +1,20 @@
 "use client";
 
 import PostForm, { FileObj, PostFormValues } from "@/components/PostForm";
+import { updatePost } from "@/libs/api";
 import useBoundStore from "@/libs/store";
-import { getBase64 } from "@/libs/utils";
+import { convertToType, getBase64 } from "@/libs/utils";
+import { useMutation } from "@tanstack/react-query";
+import { message } from "antd";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 export default function Page() {
+  const { id } = useParams();
+  const param = useSearchParams().get("type") || "default";
+  const router = useRouter();
+  const isInvalid = param === "default" || convertToType(param) === -1;
   const { photos, reset } = useBoundStore(
     ({ postForm }) => ({
       photos: postForm.photos,
@@ -15,6 +23,37 @@ export default function Page() {
     shallow
   );
   const [initialFileList, setInitialFileList] = useState<FileObj[]>([]);
+  const { mutate, isLoading } = useMutation({
+    mutationFn: updatePost,
+    onSuccess() {
+      message.success({ content: "게시글이 수정되었습니다." });
+      router.back();
+    },
+    useErrorBoundary: true,
+  });
+
+  function handleSubmit(data: PostFormValues) {
+    const formData = new FormData();
+    const type = convertToType(param!);
+    formData.append("postId", id);
+    for (const photo of data.photos) formData.append("pictures", photo.data);
+    formData.append("species", data.speciesBreed[0].toString());
+    formData.append("breed", data.speciesBreed[1].toString());
+    if (data.date && data.time)
+      formData.append(
+        "time",
+        new Date(
+          `${data.date.format("YYYY-MM-DD")}T${data.time.format("HH:mm:ss")}`
+        ).toISOString()
+      );
+    if (data.coords) {
+      formData.append("postLat", data.coords[0].toString());
+      formData.append("postLot", data.coords[1].toString());
+    }
+    if (data.content) formData.append("content", data.content);
+    formData.append("type", type.toString());
+    mutate(formData);
+  }
 
   useEffect(() => {
     Promise.all(
@@ -36,28 +75,19 @@ export default function Page() {
   }, [photos]);
 
   useEffect(() => {
+    if (isInvalid) router.back();
     return () => {
       reset();
     };
-  }, [reset]);
+  }, [reset, isInvalid, router]);
 
-  function handleSubmit({ date, time }: PostFormValues) {
-    /* const parsedDate = new Date(
-      `${date.format("YYYY-MM-DD")}T${time.format("HH:mm:ss")}`
-    ).getTime();
-    console.log(parsedDate); */
-  }
-
+  if (isInvalid) return null;
   return (
     <PostForm
       buttonText="수정"
       initialFileList={initialFileList}
       handleSubmit={handleSubmit}
+      isLoading={isLoading}
     />
   );
 }
-
-/* 
-    TODO
-    4. 쿼리 스트링 type 임의로 바꿔서 이상한 값 들어올경우 처리
-*/

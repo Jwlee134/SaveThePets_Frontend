@@ -1,12 +1,20 @@
+import { createComment, updateComment } from "@/libs/api";
+import { PostDetailResponse } from "@/libs/api/types";
 import useIsReady from "@/libs/hooks/useIsReady";
+import useMe from "@/libs/hooks/useMe";
 import useBoundStore from "@/libs/store";
 import usePersistStore from "@/libs/store/usePersistStore";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input } from "antd";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 const { TextArea } = Input;
 
 export default function CommentForm() {
+  const me = useMe();
+  const params = useParams();
+  const queryClient = useQueryClient();
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const { isEdit, id, value, disableEditMode } = useBoundStore(
     ({ comment }) => ({
@@ -19,18 +27,60 @@ export default function CommentForm() {
   );
   const isReady = useIsReady();
   const [form] = Form.useForm<{ value: string }>();
-  const disableBtn = !Form.useWatch("value", form);
+
+  function onSettled() {
+    queryClient.invalidateQueries({ queryKey: ["posts", params.id] });
+    form.setFieldValue("value", "");
+  }
+
+  const { mutate: create, isLoading } = useMutation({
+    mutationFn: createComment,
+    useErrorBoundary: true,
+    onSuccess: onSettled,
+  });
+  const { mutate: update } = useMutation({
+    mutationFn: updateComment,
+    useErrorBoundary: true,
+    onMutate: async ({ content }) => {
+      await queryClient.cancelQueries({ queryKey: ["posts", params.id] });
+      const prevData: PostDetailResponse = queryClient.getQueryData([
+        "posts",
+        params.id,
+      ])!;
+      queryClient.setQueryData(["posts", params.id], {
+        ...prevData,
+        comments: prevData.comments.map((comment) =>
+          comment.commentId === id ? { ...comment, content } : comment
+        ),
+      });
+      return { prevData };
+    },
+    onError(error, variables, context) {
+      queryClient.setQueryData(["posts", params.id], context?.prevData);
+    },
+    onSettled() {
+      onSettled();
+      disableEditMode();
+    },
+  });
 
   function handleFinish({ value }: { value: string }) {
-    console.log(value);
-
+    if (!me) return;
     if (isEdit) {
-      disableEditMode();
+      create({
+        content: value,
+        postId: parseInt(params.id),
+        userId: me.userId,
+      });
     } else {
-      form.setFieldValue("value", "");
+      update({
+        content: value,
+        commentId: id,
+      });
     }
   }
 
+  // 수정 버튼 클릭 시 실행
   useEffect(() => {
     form.setFieldValue("value", value);
   }, [isEdit, value, form]);
@@ -42,7 +92,11 @@ export default function CommentForm() {
         className="bg-gray-100 flex p-2"
         onFinish={handleFinish}
       >
-        <Form.Item name="value" className="mb-0 flex-grow">
+        <Form.Item
+          name="value"
+          className="mb-0 flex-grow"
+          rules={[{ required: true, message: "필수 항목입니다." }]}
+        >
           <TextArea
             disabled={!isReady || !isLoggedIn}
             placeholder={
@@ -55,12 +109,7 @@ export default function CommentForm() {
           />
         </Form.Item>
         <Form.Item className="mb-0">
-          <Button
-            type="primary"
-            className="ml-2"
-            htmlType="submit"
-            disabled={disableBtn}
-          >
+          <Button className="ml-2" htmlType="submit" loading={isLoading}>
             {isEdit ? "수정" : "등록"}
           </Button>
         </Form.Item>

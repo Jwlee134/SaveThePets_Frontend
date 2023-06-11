@@ -19,8 +19,10 @@ export default function FormMap() {
   );
 
   useEffect(() => {
-    registerIdleEvent(({ centerLat, centerLng }: IdleCallbackArgs) => {
-      form.setFieldValue("coords", [centerLat, centerLng]);
+    registerIdleEvent(async ({ centerLat, centerLng }: IdleCallbackArgs) => {
+      form.setFields([
+        { name: "coords", errors: [], value: [centerLat, centerLng] },
+      ]);
     });
   }, [registerIdleEvent, form]);
 

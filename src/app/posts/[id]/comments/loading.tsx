@@ -1,9 +1,5 @@
-import Spinner from "@/components/Spinner";
+import FullScreenLoader from "@/components/FullScreenLoader";
 
 export default function Loading() {
-  return (
-    <div className="h-[var(--fit-screen)] grid place-items-center">
-      <Spinner size="lg" />
-    </div>
-  );
+  return <FullScreenLoader />;
 }

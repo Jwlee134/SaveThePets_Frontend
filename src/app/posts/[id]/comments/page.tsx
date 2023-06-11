@@ -2,8 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import CommentForm from "./CommentForm";
-import { getPostDetail } from "@/libs/api/test";
 import Comment from "./Comment";
+import { getPostDetail } from "@/libs/api";
+import { breeds } from "@/libs/constants";
 
 export default function Page({ params: { id = "" } = {} }) {
   const { data } = useQuery({
@@ -15,23 +16,14 @@ export default function Page({ params: { id = "" } = {} }) {
   return (
     <>
       <div className="p-4">
-        <div>{data ? "Title" : ""}</div>
-        <div>
-          {data
-            ? `Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry. Lorem Ipsum has been the industry's standard dummy text ever
-          since the 1500s, when an unknown printer took a galley of type and
-          scrambled it to make a type specimen book.`
-            : ""}
-        </div>
+        <div>{data && breeds[data.species][data.breed]}</div>
+        <div>{data && data.content}</div>
       </div>
       <CommentForm />
       <div className="p-4 space-y-6">
-        {Array(10)
-          .fill(0)
-          .map((v, i) => (
-            <Comment key={i} />
-          ))}
+        {data?.comments?.map((comment) => (
+          <Comment key={comment.commentId} {...comment} />
+        ))}
       </div>
     </>
   );

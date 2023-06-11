@@ -1,9 +1,11 @@
 "use client";
 
+import FullScreenLoader from "@/components/FullScreenLoader";
 import Grid from "@/components/Grid";
 import Map from "@/components/Map";
 import useIsReady from "@/libs/hooks/useIsReady";
 import usePersistStore from "@/libs/store/usePersistStore";
+import { Suspense } from "react";
 
 export default function Home() {
   const isReady = useIsReady();
@@ -11,5 +13,9 @@ export default function Home() {
 
   if (!isReady) return null;
   if (opt === "map") return <Map />;
-  return <Grid />;
+  return (
+    <Suspense fallback={<FullScreenLoader />}>
+      <Grid />
+    </Suspense>
+  );
 }
