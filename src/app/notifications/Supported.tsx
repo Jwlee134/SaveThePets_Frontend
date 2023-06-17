@@ -13,6 +13,7 @@ export default function Supported() {
   const [status, setStatus] = useState<
     PermissionState | NotificationPermission
   >(Notification.permission);
+  const [isLoading, setIsLoading] = useState(false);
 
   function listener(e: Event) {
     setStatus((e.target as PermissionStatus).state);
@@ -30,10 +31,7 @@ export default function Supported() {
   }, []);
 
   if (!isLoggedIn) return <LoginRequired />;
-  if (status !== "granted") return <Permission />;
-  return (
-    <Suspense fallback={<FullScreenLoader />}>
-      <NotificationList />
-    </Suspense>
-  );
+  if (status !== "granted" || isLoading)
+    return <Permission setIsLoading={setIsLoading} />;
+  return <NotificationList />;
 }
