@@ -52,6 +52,7 @@ export default function Me() {
           size={128}
           icon={<AiOutlineUser className="text-7xl" />}
           className="flex justify-center items-center shrink-0"
+          src={me?.picture}
         />
         <div className="ml-6">
           <div className="text-2xl break-all">
