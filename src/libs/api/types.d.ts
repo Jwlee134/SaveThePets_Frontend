@@ -69,7 +69,7 @@ export interface TimelineBody {
 }
 
 export interface PostDetailResponse {
-  userId: string;
+  userid: string;
   nickname: string;
   profilePicture: string;
   species: number;

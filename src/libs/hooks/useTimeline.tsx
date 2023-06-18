@@ -118,7 +118,7 @@ export default function useTimeline(
   );
 
   const setTimelineMarkers = useCallback(
-    (data: TimelineResponse[]) => {
+    (data: Omit<TimelineResponse, "address">[]) => {
       // 데이터의 길이가 더 적다면(타임라인 마커를 삭제했을 때) 삭제된 타임라인 마커 제거
       if (data.length < timelineMarkers.current.length) {
         timelineMarkers.current = timelineMarkers.current.filter((mk) => {
@@ -145,16 +145,7 @@ export default function useTimeline(
         )
         .forEach(
           (
-            {
-              sightingPostId,
-              postLat,
-              postLot,
-              breed,
-              species,
-              time,
-              picture,
-              address,
-            },
+            { sightingPostId, postLat, postLot, breed, species, time, picture },
             i
           ) => {
             const size =
@@ -185,7 +176,7 @@ export default function useTimeline(
                   marker.getPosition().x,
                   marker.getPosition().y
                 ),
-                { address, breed, id: sightingPostId, picture, species, time }
+                { breed, id: sightingPostId, picture, species, time }
               );
             });
             timelineMarkers.current.push(marker);

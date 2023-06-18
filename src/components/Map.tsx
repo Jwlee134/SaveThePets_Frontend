@@ -42,21 +42,25 @@ export default function Map() {
     { id: string; node: HTMLElement; thumbUrl: string }[]
   >([]);
   const [clickedId, setClickedId] = useState(0);
+  const [mapQueryStr, setMapQueryStr] = useState("");
 
-  const { data: posts, refetch: fetchPosts } = useQuery({
-    queryKey: ["posts", "map"],
+  const { data: posts } = useQuery({
+    queryKey: ["posts", "map", mapQueryStr],
     queryFn: getPostsMap,
-    enabled: false,
+    enabled: !!mapQueryStr,
+    useErrorBoundary: true,
   });
   const { data: filteredPosts } = useQuery({
     queryKey: ["posts", searchParams.toString()],
     queryFn: getFilteredPosts,
     enabled: filterEnabled,
+    useErrorBoundary: true,
   });
-  const { data: detail } = useQuery({
+  const { data: detail, isLoading } = useQuery({
     queryKey: ["posts", clickedId],
     queryFn: getPostDetail,
     enabled: !!clickedId,
+    useErrorBoundary: true,
   });
 
   const showVisibleMarkersOnly = useCallback(() => {
@@ -84,23 +88,19 @@ export default function Map() {
         Number(centerLng.toFixed(6)),
         zoom
       );
-      fetchPosts({
-        queryKey: [
-          "posts",
-          "map",
-          new URLSearchParams({
-            centerLat: centerLat.toFixed(6),
-            centerLng: centerLng.toFixed(6),
-            rightUpLat: neLat.toFixed(6),
-            rightUpLot: neLng.toFixed(6),
-            leftDownlat: swLat.toFixed(6),
-            leftDownlot: swLng.toFixed(6),
-          }).toString(),
-        ],
-      });
+      setMapQueryStr(
+        new URLSearchParams({
+          centerLat: centerLat.toFixed(6),
+          centerLng: centerLng.toFixed(6),
+          rightUpLat: neLat.toFixed(6),
+          rightUpLot: neLng.toFixed(6),
+          leftDownlat: swLat.toFixed(6),
+          leftDownlot: swLng.toFixed(6),
+        }).toString()
+      );
       showVisibleMarkersOnly();
     },
-    [setCoords, fetchPosts, showVisibleMarkersOnly]
+    [setCoords, showVisibleMarkersOnly]
   );
 
   const idleEventCallbackFiltered = useCallback(
@@ -154,8 +154,8 @@ export default function Map() {
           map,
           icon: {
             content: `<div id="${post.postId}" />`,
-            size: new naver.maps.Size(72, 72),
-            anchor: new naver.maps.Point(36, 72),
+            size: new naver.maps.Size(80, 80),
+            anchor: new naver.maps.Point(40, 40),
           },
           title: post.postId.toString(),
         });
@@ -178,19 +178,18 @@ export default function Map() {
     if (!detail || !clickedMarker.current) return;
     unregisterIdleEvent();
     markers.current.forEach(hideMarker);
-    const { address, breed, picture, postId, species, time, postLat, postLot } =
+    const { breed, picture, postId, species, time, postLat, postLot, type } =
       clickedMarker.current;
     openInfoWindow(new naver.maps.LatLng(postLat, postLot), {
-      address,
       breed,
       species,
       id: postId,
       picture,
       time,
+      type,
     });
     setTimelineMarkers([
       {
-        address,
         breed,
         picture,
         sightingPostId: postId,
@@ -281,7 +280,14 @@ export default function Map() {
       <MyLocationButton mapRef={map} />
       {markerNodesArr.length > 0 &&
         markerNodesArr.map(({ id, node, thumbUrl }) =>
-          createPortal(<Marker url={thumbUrl} />, node, id)
+          createPortal(
+            <Marker
+              url={thumbUrl}
+              isLoading={id === clickedId.toString() && isLoading}
+            />,
+            node,
+            id
+          )
         )}
       {timelineNodesArr.length > 0 &&
         timelineNodesArr.map(({ id, node }, i) =>

@@ -19,7 +19,7 @@ export function hidePolyline(polyline: naver.maps.Polyline) {
 }
 
 export function formatCreatedAt(date: string) {
-  const start = new Date(date).getTime();
+  const start = new Date(dayjs(date).add(9, "hours").toISOString()).getTime();
   const end = Date.now();
   const diff = (end - start) / 1000;
   const times = [
