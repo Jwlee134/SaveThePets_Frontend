@@ -5,7 +5,7 @@ import useMe from "@/libs/hooks/useMe";
 import useBoundStore from "@/libs/store";
 import usePersistStore from "@/libs/store/usePersistStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
@@ -36,7 +36,10 @@ export default function CommentForm() {
   const { mutate: create, isLoading } = useMutation({
     mutationFn: createComment,
     useErrorBoundary: true,
-    onSuccess: onSettled,
+    onSuccess(data) {
+      if (!data) message.warning({ content: "댓글 등록에 실패했습니다." });
+      else onSettled();
+    },
   });
   const { mutate: update } = useMutation({
     mutationFn: updateComment,
@@ -47,6 +50,7 @@ export default function CommentForm() {
         "posts",
         params.id,
       ])!;
+      form.setFieldValue("value", "");
       queryClient.setQueryData(["posts", params.id], {
         ...prevData,
         comments: prevData.comments.map((comment) =>
@@ -66,7 +70,7 @@ export default function CommentForm() {
 
   function handleFinish({ value }: { value: string }) {
     if (!me) return;
-    if (isEdit) {
+    if (!isEdit) {
       create({
         content: value,
         postId: parseInt(params.id),
