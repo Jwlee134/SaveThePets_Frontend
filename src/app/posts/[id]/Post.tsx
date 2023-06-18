@@ -6,10 +6,12 @@ import PostDropdown from "./PostDropdown";
 import PostInteractions from "./PostInteractions";
 import Timeline from "./Timeline";
 import { getPostDetail } from "@/libs/api";
+import { useParams } from "next/navigation";
 
-export default function Post({ params: { id = "" } = {} }) {
+export default function Post() {
+  const params = useParams();
   const { data } = useQuery({
-    queryKey: ["posts", id],
+    queryKey: ["posts", params.id],
     queryFn: getPostDetail,
     suspense: true,
     useErrorBoundary: true,

@@ -32,22 +32,22 @@ export default function NewButton() {
     {
       label: "실종",
       key: 0,
-      onClick: () => handleClick("/new?type=missed"),
+      onClick: () => handleClick("/new?type=0"),
     },
     {
       label: "목격",
       key: 1,
-      onClick: () => handleClick("/new?type=witnessed"),
+      onClick: () => handleClick("/new?type=1"),
     },
     {
       label: "보호",
       key: 2,
-      onClick: () => handleClick("/new?type=saved"),
+      onClick: () => handleClick("/new?type=2"),
     },
     {
       label: "분양",
       key: 3,
-      onClick: () => handleClick("/new?type=distributed"),
+      onClick: () => handleClick("/new?type=3"),
     },
   ];
 

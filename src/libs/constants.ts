@@ -147,8 +147,8 @@ export const speciesBreedsOption: CascaderOption[] = [
 ];
 
 export const postFormTable: { [key: string]: string[] } = {
-  missed: ["부가 정보", "잃어버린 시간", "잃어버린 장소"],
-  witnessed: ["부가 정보", "목격한 시간", "목격한 장소"],
-  saved: ["부가 정보", "목격한 시간", "보호중인 장소"],
-  distributed: ["반려동물 정보"],
+  "0": ["부가 정보", "잃어버린 시간", "잃어버린 장소"],
+  "1": ["부가 정보", "목격한 시간", "목격한 장소"],
+  "2": ["부가 정보", "목격한 시간", "보호중인 장소"],
+  "3": ["반려동물 정보"],
 };

@@ -12,7 +12,15 @@ export interface IdleCallbackArgs {
   zoom: number;
 }
 
-export default function useMap(ref: RefObject<HTMLDivElement>) {
+interface UseMapInit {
+  lat?: number;
+  lng?: number;
+}
+
+export default function useMap(
+  ref: RefObject<HTMLDivElement>,
+  init?: UseMapInit
+) {
   const idle = useRef<naver.maps.MapEventListener | null>(null);
   const { lat, lng, zoom } = usePersistStore(
     (state) => ({
@@ -79,12 +87,20 @@ export default function useMap(ref: RefObject<HTMLDivElement>) {
 
   useEffect(() => {
     if (map.current) return;
-    const mapRef = new naver.maps.Map(ref.current as HTMLElement, {
-      center: new naver.maps.LatLng(lat, lng),
-      zoom,
-    });
+    let mapRef;
+    if (init && init.lat && init.lng) {
+      mapRef = new naver.maps.Map(ref.current as HTMLElement, {
+        center: new naver.maps.LatLng(init.lat, init.lng),
+        zoom,
+      });
+    } else {
+      mapRef = new naver.maps.Map(ref.current as HTMLElement, {
+        center: new naver.maps.LatLng(lat, lng),
+        zoom,
+      });
+    }
     map.current = mapRef;
-  }, [ref, lat, lng, zoom]);
+  }, [ref, lat, lng, zoom, init]);
 
   useEffect(() => {
     return () => {

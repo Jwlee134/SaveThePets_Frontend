@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { IoBookmarkOutline, IoChatboxOutline } from "react-icons/io5";
+import {
+  IoBookmark,
+  IoBookmarkOutline,
+  IoChatboxOutline,
+} from "react-icons/io5";
 import AddToTimelineButton from "./AddToTimelineButton";
 import { useState } from "react";
 import usePersistStore from "@/libs/store/usePersistStore";
@@ -88,12 +92,14 @@ export default function PostInteractions() {
     <>
       <div className="flex items-center space-x-4">
         <button onClick={handleClick}>
-          <IoBookmarkOutline />
+          {data?.bookmarked ? <IoBookmark /> : <IoBookmarkOutline />}
         </button>
         <Link href={`/posts/${id}/comments`}>
           <IoChatboxOutline />
         </Link>
-        {isReady && isLoggedIn && <AddToTimelineButton />}
+        {isReady && isLoggedIn && (data?.type === 1 || data?.type === 2) && (
+          <AddToTimelineButton />
+        )}
       </div>
       <LoginModal isModalOpen={isModalOpen} handleCancel={handleCancel} />
     </>

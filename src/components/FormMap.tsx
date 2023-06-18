@@ -2,21 +2,20 @@ import CenterFixedMarker from "@/components/CenterFixedMarker";
 import MyLocationButton from "@/components/MyLocationButton";
 import useIsReady from "@/libs/hooks/useIsReady";
 import useMap, { IdleCallbackArgs } from "@/libs/hooks/useMap";
-import useBoundStore from "@/libs/store";
 import { Form } from "antd";
 import { useEffect, useRef } from "react";
-import { shallow } from "zustand/shallow";
 import { PostFormValues } from "./PostForm";
+import { PostDetailResponse } from "@/libs/api/types";
 
-export default function FormMap() {
+interface FormMapProps {
+  initialData?: PostDetailResponse | undefined;
+}
+
+export default function FormMap({ initialData }: FormMapProps) {
   const form = Form.useFormInstance<PostFormValues>();
   const isReady = useIsReady();
   const ref = useRef<HTMLDivElement>(null);
   const { map, registerIdleEvent } = useMap(ref);
-  const { lat, lng } = useBoundStore(
-    ({ postForm }) => ({ lat: postForm.lat, lng: postForm.lng }),
-    shallow
-  );
 
   useEffect(() => {
     registerIdleEvent(async ({ centerLat, centerLng }: IdleCallbackArgs) => {
@@ -27,11 +26,12 @@ export default function FormMap() {
   }, [registerIdleEvent, form]);
 
   useEffect(() => {
-    if (lat && lng && map.current) {
-      map.current.setCenter(new naver.maps.LatLng(lat, lng));
-      form.setFieldValue("coords", [lat, lng]);
+    if (initialData && map.current) {
+      const { lat, lot } = initialData;
+      map.current.setCenter(new naver.maps.LatLng(lat, lot));
+      form.setFieldValue("coords", [lat, lot]);
     }
-  }, [lat, lng, map, form]);
+  }, [initialData, map, form]);
 
   return (
     <div ref={ref} className="w-full aspect-square">

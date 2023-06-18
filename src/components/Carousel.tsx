@@ -52,7 +52,7 @@ export default function Carousel() {
       </div>
       <PrevBtn onClick={scrollPrev} />
       <NextBtn onClick={scrollNext} />
-      <Indicator index={selectedIndex + 1} length={length} />
+      <Indicator index={selectedIndex + 1} length={data?.length || 0} />
     </div>
   );
 }

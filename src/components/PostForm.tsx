@@ -8,9 +8,9 @@ import "dayjs/locale/ko";
 import locale from "antd/es/date-picker/locale/ko_KR";
 import Photos from "./Photos";
 import FormMap from "./FormMap";
-import useBoundStore from "@/libs/store";
-import { shallow } from "zustand/shallow";
 import { postFormTable, speciesBreedsOption } from "@/libs/constants";
+import { PostDetailResponse } from "@/libs/api/types";
+import { getBase64 } from "@/libs/utils";
 
 export interface PostFormValues {
   date: dayjs.Dayjs;
@@ -27,51 +27,58 @@ const { TextArea } = Input;
 
 interface PostFormProps {
   buttonText?: string;
-  initialFileList?: FileObj[];
   handleSubmit: (data: PostFormValues) => void;
   isLoading: boolean;
+  initialData?: PostDetailResponse | undefined;
 }
 
 export default function PostForm({
   buttonText = "업로드",
-  initialFileList,
   handleSubmit,
   isLoading,
+  initialData,
 }: PostFormProps) {
-  const {
-    time: initialTime,
-    content,
-    species,
-    breed,
-  } = useBoundStore(
-    ({ postForm }) => ({
-      time: postForm.time,
-      content: postForm.content,
-      species: postForm.species,
-      breed: postForm.breed,
-    }),
-    shallow
-  );
   const [form] = Form.useForm<PostFormValues>();
   const param = useSearchParams().get("type")!;
 
+  // 수정 페이지일 경우 초기 데이터 설정
   useEffect(() => {
-    if (initialFileList) form.setFieldValue("photos", initialFileList);
-  }, [initialFileList, form]);
+    if (!initialData) return;
+    Promise.all(
+      initialData.pictures.map((photo, i) =>
+        fetch(photo)
+          .then((res) => res.blob())
+          .then((blob) => new File([blob], `photo-${i}`, { type: blob.type }))
+      )
+    ).then((fileList) =>
+      Promise.all(
+        fileList.map(async (file) => {
+          const thumbUrl = await getBase64(file);
+          return { data: file, id: `${file.name}-${file.size}`, url: thumbUrl };
+        })
+      ).then((res) => {
+        form.setFieldValue("photos", res);
+      })
+    );
+    form.setFieldsValue({
+      ...(initialData?.time && {
+        date: dayjs(initialData.time),
+        time: dayjs(initialData.time),
+      }),
+      ...(initialData?.content && { content: initialData.content }),
+      ...(typeof initialData?.species === "number" && {
+        speciesBreed: [initialData.species, initialData.breed],
+      }),
+      ...(initialData?.lat && { lat: initialData.lat }),
+      ...(initialData?.lot && { lng: initialData.lot }),
+    });
+  }, [initialData, form]);
 
   return (
     <div className="p-4">
       <Form
         form={form}
         labelCol={{ span: 24 }}
-        initialValues={{
-          ...(initialTime && { date: dayjs(initialTime) }),
-          ...(initialTime && { time: dayjs(initialTime) }),
-          ...(content && { content }),
-          ...(species !== null && {
-            speciesBreed: [species, ...(breed !== null ? [breed] : [])],
-          }),
-        }}
         onFinish={(v) => {
           handleSubmit(v);
         }}
@@ -88,7 +95,7 @@ export default function PostForm({
               required: true,
               message: "필수 항목입니다.",
               validator(_, value) {
-                if (!value)
+                if (!value || !value?.length)
                   return Promise.reject(new Error("필수 항목입니다."));
                 return Promise.resolve();
               },
@@ -97,9 +104,23 @@ export default function PostForm({
         >
           <Photos />
         </Form.Item>
-        {param !== "distributed" && (
+        {param !== "3" && (
           <>
-            <Form.Item name="speciesBreed" label="종 및 품종">
+            <Form.Item
+              name="speciesBreed"
+              label="종 및 품종"
+              rules={[
+                {
+                  required: true,
+                  message: "필수 항목입니다.",
+                  validator(_, value) {
+                    if (!value || value?.length < 2)
+                      return Promise.reject(new Error("필수 항목입니다."));
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
               <Cascader options={speciesBreedsOption} changeOnSelect />
             </Form.Item>
             <Form.Item
@@ -143,7 +164,7 @@ export default function PostForm({
                 },
               ]}
             >
-              <FormMap />
+              <FormMap initialData={initialData} />
             </Form.Item>
           </>
         )}
@@ -152,13 +173,13 @@ export default function PostForm({
             <div>
               {postFormTable[param][0]}{" "}
               <span className="text-gray-400">
-                ({param === "distributed" ? "필수" : "선택"})
+                ({param === "3" ? "필수" : "선택"})
               </span>
             </div>
           }
           name="content"
           rules={
-            param === "distributed"
+            param === "3"
               ? [{ required: true, message: "필수 항목입니다." }]
               : undefined
           }
