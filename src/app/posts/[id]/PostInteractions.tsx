@@ -6,13 +6,14 @@ import {
   IoChatboxOutline,
 } from "react-icons/io5";
 import AddToTimelineButton from "./AddToTimelineButton";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import usePersistStore from "@/libs/store/usePersistStore";
 import LoginModal from "@/components/LoginModal";
 import useIsReady from "@/libs/hooks/useIsReady";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBookmark, deleteBookmark, getPostDetail } from "@/libs/api";
 import { PostDetailResponse } from "@/libs/api/types";
+import Spinner from "@/components/Spinner";
 
 export default function PostInteractions() {
   const queryClient = useQueryClient();
@@ -98,7 +99,9 @@ export default function PostInteractions() {
           <IoChatboxOutline />
         </Link>
         {isReady && isLoggedIn && (data?.type === 1 || data?.type === 2) && (
-          <AddToTimelineButton />
+          <Suspense fallback={<Spinner size="sm" />}>
+            <AddToTimelineButton />
+          </Suspense>
         )}
       </div>
       <LoginModal isModalOpen={isModalOpen} handleCancel={handleCancel} />

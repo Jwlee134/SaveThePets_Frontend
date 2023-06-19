@@ -26,7 +26,7 @@ export default function Post() {
           <PostDropdown />
         </div>
         <p className="break-all font-light">{data?.content}</p>
-        <Timeline />
+        {data?.type === 0 && <Timeline />}
       </div>
     </>
   );

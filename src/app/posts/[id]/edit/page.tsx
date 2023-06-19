@@ -24,11 +24,9 @@ export default function Page() {
   const { mutate } = useMutation({
     mutationFn: updatePost,
     onSuccess() {
+      setIsLoading(false);
       message.success({ content: "수정되었습니다." });
       router.back();
-    },
-    onSettled() {
-      setIsLoading(false);
     },
     useErrorBoundary: true,
   });

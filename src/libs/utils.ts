@@ -103,5 +103,5 @@ export function createNotificationText(
 }
 
 export function formatTime(time: string) {
-  return dayjs(time).format("YYYY-MM-DD, HH:mm");
+  return dayjs(time).add(9, "hours").format("YYYY-MM-DD, HH:mm");
 }
