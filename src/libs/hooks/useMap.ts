@@ -35,12 +35,19 @@ export default function useMap(
   const panToBounds = useCallback((coords: naver.maps.Coord[]) => {
     //@ts-ignore
     const bounds = naver.maps.PointBounds.bounds(...coords);
-    map.current?.panToBounds(bounds);
+    map.current?.panToBounds(bounds, undefined, {
+      bottom: 100,
+      left: 100,
+      right: 100,
+      top: 100,
+    });
   }, []);
 
   const registerIdleEvent = useCallback(
     (cb: (arg: IdleCallbackArgs) => void, executeCallbackOnInit?: boolean) => {
-      if (!map.current) return;
+      if (!map.current || idle.current) return;
+      /* 필터 비활성화된 상태에서 이벤트 등록될 경우 최초엔 bounds, 중앙 좌표가 담긴 쿼리스트링 없으므로
+      최초 데이터 fetching을 위한 용도 */
       if (executeCallbackOnInit) {
         const zoom = map.current.getZoom();
         const bounds = map.current.getBounds();
@@ -87,18 +94,13 @@ export default function useMap(
 
   useEffect(() => {
     if (map.current) return;
-    let mapRef;
-    if (init && init.lat && init.lng) {
-      mapRef = new naver.maps.Map(ref.current as HTMLElement, {
-        center: new naver.maps.LatLng(init.lat, init.lng),
-        zoom,
-      });
-    } else {
-      mapRef = new naver.maps.Map(ref.current as HTMLElement, {
-        center: new naver.maps.LatLng(lat, lng),
-        zoom,
-      });
-    }
+    const mapRef = new naver.maps.Map(ref.current as HTMLElement, {
+      center:
+        init && init.lat && init.lng
+          ? new naver.maps.LatLng(init.lat, init.lng)
+          : new naver.maps.LatLng(lat, lng),
+      zoom,
+    });
     map.current = mapRef;
   }, [ref, lat, lng, zoom, init]);
 

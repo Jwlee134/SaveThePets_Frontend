@@ -1,7 +1,7 @@
 import { createTimeline, getMyLostPosts } from "@/libs/api";
 import { breeds } from "@/libs/constants";
 import { formatTime } from "@/libs/utils";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal, Radio, message } from "antd";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { IoAddCircleOutline } from "react-icons/io5";
 
 export default function AddToTimelineButton() {
+  const queryClient = useQueryClient();
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [value, setValue] = useState(0);
@@ -19,10 +20,10 @@ export default function AddToTimelineButton() {
   });
   const { mutate, isLoading } = useMutation({
     mutationFn: createTimeline,
-    onSuccess(data) {
+    onSuccess(data, { missingPostId }) {
       if (data) {
         message.success({ content: "추가되었습니다." });
-        setValue(0);
+        queryClient.invalidateQueries({ queryKey: ["posts", missingPostId] });
         setIsModalOpen(false);
       } else {
         message.error({ content: "이미 추가된 게시글입니다." });
@@ -63,6 +64,8 @@ export default function AddToTimelineButton() {
         centered
         bodyStyle={{ maxHeight: 196, overflowY: "auto" }}
         confirmLoading={isLoading}
+        afterClose={() => setValue(0)}
+        okButtonProps={{ disabled: !value }}
       >
         <div className="space-y-3 overflow-hidden">
           {data?.map((post) => (

@@ -22,6 +22,7 @@ export default function PostDropdown() {
     mutationFn: () => deletePost(id),
     useErrorBoundary: true,
     onSuccess() {
+      setIsModalOpen(false);
       message.success({ content: "게시글이 삭제되었습니다." });
       router.back();
     },

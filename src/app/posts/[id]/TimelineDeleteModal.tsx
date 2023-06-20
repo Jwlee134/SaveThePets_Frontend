@@ -2,7 +2,7 @@ import TimelineMarker from "@/components/TimelineMarker";
 import { deleteTimeline, getPostDetail } from "@/libs/api";
 import { PostDetailResponse } from "@/libs/api/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Modal, Timeline, TimelineItemProps, message } from "antd";
+import { Button, Modal, Timeline, TimelineItemProps, message } from "antd";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IoTrash, IoTrashOutline } from "react-icons/io5";
@@ -36,8 +36,8 @@ export default function TimelineDeleteModal() {
     onError(error, variables, context) {
       queryClient.setQueryData(["posts", id], context?.prevData);
     },
-    onSettled() {
-      queryClient.invalidateQueries({ queryKey: ["posts", id] });
+    onSettled(data, error, { missingPostId }, context) {
+      queryClient.invalidateQueries({ queryKey: ["posts", missingPostId] });
     },
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,10 +87,13 @@ export default function TimelineDeleteModal() {
       <Modal
         title="타임라인 삭제"
         open={isModalOpen}
-        onOk={handleOk}
         centered
-        okType="danger"
-        okText="닫기"
+        onCancel={handleOk}
+        footer={[
+          <Button onClick={handleOk} key={0}>
+            확인
+          </Button>,
+        ]}
         bodyStyle={{ maxHeight: 230, overflowY: "auto", padding: "0 12px" }}
       >
         <Timeline items={items} className="pt-5" />

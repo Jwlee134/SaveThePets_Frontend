@@ -9,7 +9,11 @@ interface MarkerProps {
 
 export default function Marker({ url, isLoading }: MarkerProps) {
   return (
-    <div className="w-20 h-20 relative rounded-full overflow-hidden shadow-lg">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-20 h-20 relative rounded-full overflow-hidden shadow-lg"
+    >
       <Image
         src={url}
         alt="thumbnail"
@@ -28,6 +32,6 @@ export default function Marker({ url, isLoading }: MarkerProps) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }

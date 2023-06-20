@@ -1,10 +1,10 @@
-import { createComment, updateComment } from "@/libs/api";
+import { createComment, getPostDetail, updateComment } from "@/libs/api";
 import { PostDetailResponse } from "@/libs/api/types";
 import useIsReady from "@/libs/hooks/useIsReady";
 import useMe from "@/libs/hooks/useMe";
 import useBoundStore from "@/libs/store";
 import usePersistStore from "@/libs/store/usePersistStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
@@ -15,6 +15,10 @@ export default function CommentForm() {
   const me = useMe();
   const params = useParams();
   const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["posts", params.id],
+    queryFn: getPostDetail,
+  });
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const { isEdit, id, value, disableEditMode } = useBoundStore(
     ({ comment }) => ({
@@ -69,12 +73,12 @@ export default function CommentForm() {
   });
 
   function handleFinish({ value }: { value: string }) {
-    if (!me) return;
+    if (!me || !data) return;
     if (!isEdit) {
       create({
         content: value,
         postId: parseInt(params.id),
-        userId: me.userId,
+        userId: data.userid,
       });
     } else {
       update({

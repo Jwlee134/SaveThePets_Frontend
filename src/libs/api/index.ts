@@ -1,5 +1,3 @@
-"use client";
-
 import axios from "axios";
 import usePersistStore from "../store/usePersistStore";
 import {
@@ -13,6 +11,7 @@ import {
   PostDetailResponse,
   PostResponse,
   PostsMapQueryParams,
+  PushSubscriptionBody,
   ReportBody,
   TimelineBody,
   UpdateCommentBody,
@@ -112,9 +111,7 @@ export const deletePost = (postId: string) =>
     .then((res) => res.data);
 
 export const getPostsGrid = ({ pageParam = 1 }: QueryFunctionContext) =>
-  instance
-    .get<PostResponse[]>(`/post/list/${pageParam}`)
-    .then((res) => res.data);
+  instance.get<PostResponse[]>(`/post/list`).then((res) => res.data);
 
 export const getPostsMap = ({ queryKey }: QueryFunctionContext) =>
   instance
@@ -170,6 +167,9 @@ export const updateAvatar = (data: FormData) =>
       headers: { "Content-Type": "multipart/form-data" },
     })
     .then((res) => res.data);
+
+export const postPushSubscription = (data: PushSubscriptionBody) =>
+  instance.post<boolean>("/user/push", data).then((res) => res.data);
 
 export const getMe = () =>
   instance.get<MeResponse>("/user/info").then((res) => res.data);

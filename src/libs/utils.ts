@@ -91,10 +91,10 @@ export function createNotificationText(
   type: number,
   { nickname, breed }: { nickname?: string; breed?: string }
 ) {
-  if (nickname && breed)
-    return `${nickname}님이 ${breed} ${convertFromType(
-      type
-    )} 게시글에 댓글을 남겼습니다.`;
+  if (type === 4)
+    return `${
+      nickname || "Anonymous"
+    }님이 ${breed} 게시글에 댓글을 남겼습니다.`;
   if (breed) {
     if (type === 1)
       return `${breed}의 실종 위치 근처에 ${breed}로 추정되는 동물이 목격되었습니다. 클릭하여 확인해 보세요.`;

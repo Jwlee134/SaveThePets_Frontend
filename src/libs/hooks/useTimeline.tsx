@@ -10,13 +10,18 @@ import { useParams } from "next/navigation";
 import { InfoWindowProps } from "@/components/InfoWindow";
 import { TimelineResponse } from "../api/types";
 
+interface RegisterClickEventArgs {
+  shouldResetTimelineMarkers?: boolean;
+  customResetAction?: () => void;
+}
+
 export default function useTimeline(
   map: MutableRefObject<naver.maps.Map | undefined>,
   panToBounds: (coords: naver.maps.Coord[]) => void
 ) {
   const params = useParams();
   const timelineMarkers = useRef<naver.maps.Marker[]>([]);
-  const clickEvent = useRef<naver.maps.MapEventListener>();
+  const clickEvent = useRef<naver.maps.MapEventListener | null>(null);
   const [timelineNodesArr, setTimelineNodesArr] = useState<
     { id: string; node: HTMLElement }[]
   >([]);
@@ -44,9 +49,9 @@ export default function useTimeline(
           pixelOffset: new naver.maps.Point(0, -12),
         });
       }
-      infoWindow.current?.open(map.current!, anchor);
+      infoWindow.current?.open(map.current!, anchor); // 인포윈도우 노드 생성
       const node = document.getElementById("infowindow");
-      if (node) setInfoWindowObj({ node, data });
+      if (node) setInfoWindowObj({ node, data }); // 실제 표시할 리액트 노드의 정보 저장
     },
     [map]
   );
@@ -94,23 +99,24 @@ export default function useTimeline(
     resetPolylines();
   }, [resetPolylines]);
 
+  // 타임라인이 표시된 상태에서 지도 클릭 시 타임라인이 보여지기 이전 상태로 돌아가기 위한 함수
   const registerClickEvent = useCallback(
     ({
-      shouldResetTimelineMarkers = true,
+      shouldResetTimelineMarkers = true, // 실종 게시글 세부정보 페이지에서는 지도 클릭하면 인포윈도우만 제거해야 하므로 추가된 항목
       customResetAction,
-    }: {
-      shouldResetTimelineMarkers?: boolean;
-      customResetAction?: () => void;
-    }) => {
-      if (clickEvent.current)
+    }: RegisterClickEventArgs) => {
+      // 중복 클릭 이벤트 생성 방지 위함
+      if (clickEvent.current) {
         naver.maps.Event.removeListener(clickEvent.current);
+        clickEvent.current = null;
+      }
       clickEvent.current = naver.maps.Event.addListener(
         map.current,
         "click",
         () => {
-          resetInfoWindow();
-          if (shouldResetTimelineMarkers) resetTimelineAndPolylines();
-          if (customResetAction) customResetAction();
+          resetInfoWindow(); // 인포윈도우 제거
+          if (shouldResetTimelineMarkers) resetTimelineAndPolylines(); // 타임라인 마커도 다 제거해야 한다면 제거
+          if (customResetAction) customResetAction(); // 홈 지도에서는 idle event 재등록, 기존 마커들 다시 표시 등의 커스텀 액션 수행
         }
       );
     },
@@ -119,14 +125,13 @@ export default function useTimeline(
 
   const setTimelineMarkers = useCallback(
     (data: Omit<TimelineResponse, "address">[]) => {
-      // 데이터의 길이가 더 적다면(타임라인 마커를 삭제했을 때) 삭제된 타임라인 마커 제거
+      // 데이터의 길이가 더 적다면(타임라인 마커를 삭제했을 경우) 삭제된 타임라인 마커 제거 위한 필터
       if (data.length < timelineMarkers.current.length) {
         timelineMarkers.current = timelineMarkers.current.filter((mk) => {
-          if (
-            !data.some(
-              (item) => item.sightingPostId.toString() === mk.getTitle()
-            )
-          ) {
+          const idx = data.findIndex(
+            (item) => item.sightingPostId.toString() === mk.getTitle()
+          );
+          if (idx === -1) {
             resetInfoWindow();
             mk.setMap(null);
             return false;
@@ -135,6 +140,15 @@ export default function useTimeline(
         });
         if (timelineMarkers.current.length === 1) resetPolylines();
       }
+      setTimelineNodesArr((prev) => {
+        return prev.filter((node) => {
+          const idx = data.findIndex(
+            (item) => item.sightingPostId.toString() === node.id
+          );
+          if (idx == -1) return false;
+          return true;
+        });
+      });
       data
         .filter(
           // 이미 존재하는 타임라인 마커의 중복 생성 방지 위해 filter
@@ -158,7 +172,7 @@ export default function useTimeline(
               (!params.id && i === 0)
                 ? 18
                 : 14;
-            // 마커 생성
+            // 전달받은 게시글 데이터로 마커 생성
             const marker = new naver.maps.Marker({
               position: new naver.maps.LatLng(postLat, postLot),
               map: map.current,
@@ -179,13 +193,15 @@ export default function useTimeline(
                 { breed, id: sightingPostId, picture, species, time }
               );
             });
-            timelineMarkers.current.push(marker);
             const node = document.getElementById(sightingPostId.toString());
-            if (node)
+            if (node) {
+              timelineMarkers.current.push(marker);
+              // 생성된 마커 노드를 실제 지도에 표시하기위한 리액트 노드의 배열에 저장
               setTimelineNodesArr((prev) => [
                 ...prev,
                 { id: sightingPostId.toString(), node },
               ]);
+            }
           }
         );
       // 마커 2개 이상이면 폴리라인으로 연결하고 줌

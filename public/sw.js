@@ -170,6 +170,7 @@ const breeds = {
   };
 
   self.addEventListener("push", (event) => {
+    console.log(event);
     /**
      * @type {Data}
      */

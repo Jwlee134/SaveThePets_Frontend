@@ -38,7 +38,7 @@ export default function Comment({
           </div>
           <CommentDropdown id={commentId} content={content} />
         </div>
-        <p className="text-sm font-light mt-1">{content}</p>
+        <p className="text-sm font-light mt-1 break-all">{content}</p>
       </div>
     </motion.li>
   );

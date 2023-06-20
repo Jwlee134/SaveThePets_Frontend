@@ -31,8 +31,10 @@ export default function InfoWindow({
         )}
       </div>
       <div className="py-1 px-2">
-        <h1>{breeds[species][breed]}</h1>
-        <p className="text-gray-500 text-xs text-ellipsis overflow-hidden">
+        <h1 className="overflow-hidden text-ellipsis whitespace-nowrap">
+          {breeds[species][breed]}
+        </h1>
+        <p className="text-gray-500 text-xs text-ellipsis overflow-hidden whitespace-nowrap">
           {formatTime(time)}
         </p>
       </div>

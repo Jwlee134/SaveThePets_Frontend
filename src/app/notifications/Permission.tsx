@@ -34,7 +34,7 @@ export default function Permission({
                   .subscribe({
                     userVisibleOnly: true,
                     applicationServerKey:
-                      "BCbe-PZDvYo1awYwqqTBWe4D-hsFLCnUNrPH915ZdzLTLnI-KkrgaFtZpLZegVT1wCKFW2Ao8cvPkrGADNM8tBk",
+                      "BLkjZY4KvUxeO7rBDQd8SIkwOlKqmTO7osgLH9mWQE1ALmr6McAEPDC4uQfXLo1wmdgXj1BW7EybpLvsuecRXYk",
                   })
                   .then((subscription) => {
                     const { endpoint = "", keys: { p256dh, auth } = {} } =
