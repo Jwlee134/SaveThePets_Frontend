@@ -23,7 +23,7 @@ export default function Permission({
         if (permission === "denied")
           message.error("알림 권한이 거부되었습니다.");
         if (permission === "granted") {
-          navigator.serviceWorker.ready.then((registration) => {
+          navigator.serviceWorker.register("/sw.js").then((registration) => {
             registration.pushManager.getSubscription().then((subscription) => {
               if (subscription) {
                 const { endpoint = "", keys: { p256dh, auth } = {} } =

@@ -11,6 +11,7 @@ import FormMap from "./FormMap";
 import { postFormTable, speciesBreedsOption } from "@/libs/constants";
 import { PostDetailResponse } from "@/libs/api/types";
 import { getBase64 } from "@/libs/utils";
+import AnalyzeBreedButton from "./AnalyzeBreedButton";
 
 export interface PostFormValues {
   date: dayjs.Dayjs;
@@ -112,17 +113,26 @@ export default function PostForm({
               rules={[
                 {
                   required: true,
-                  message: "필수 항목입니다.",
                   validator(_, value) {
-                    if (!value || value?.length < 2)
+                    if (!value || value?.length !== 2)
                       return Promise.reject(new Error("필수 항목입니다."));
                     return Promise.resolve();
                   },
                 },
               ]}
             >
-              <Cascader options={speciesBreedsOption} changeOnSelect />
+              <div className="flex w-full">
+                <Cascader
+                  options={speciesBreedsOption}
+                  onChange={(e) => {
+                    form.setFieldValue("speciesBreed", e);
+                  }}
+                  changeOnSelect
+                />
+                {param === "1" || param === "2" ? <AnalyzeBreedButton /> : null}
+              </div>
             </Form.Item>
+
             <Form.Item
               label={
                 <div>

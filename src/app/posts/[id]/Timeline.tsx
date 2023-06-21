@@ -10,9 +10,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import TimelineDeleteModal from "./TimelineDeleteModal";
 import { getPostDetail } from "@/libs/api";
+import useMe from "@/libs/hooks/useMe";
 
 export default function Timeline() {
   const isReady = useIsReady();
+  const me = useMe();
   const { opt, toggle } = usePersistStore(
     (state) => ({
       opt: state.viewOpts.postTimelineViewOpt,
@@ -24,9 +26,6 @@ export default function Timeline() {
   const { data } = useQuery({
     queryKey: ["posts", id],
     queryFn: getPostDetail,
-    select(data) {
-      return data.timeline;
-    },
   });
 
   if (!isReady) return null;
@@ -35,7 +34,9 @@ export default function Timeline() {
       <div className="flex items-center justify-between pt-8 pb-4">
         <div className="text-lg text-gray-500">타임라인</div>
         <div className="flex items-center space-x-4 text-lg">
-          {data && <TimelineDeleteModal />}
+          {data && data.timeline.length > 0 && data.userid === me?.userId && (
+            <TimelineDeleteModal />
+          )}
           <button onClick={toggle}>
             {opt === "timeline" ? <IoMapOutline /> : <IoListOutline />}
           </button>

@@ -152,3 +152,10 @@ export const postFormTable: { [key: string]: string[] } = {
   "2": ["부가 정보", "목격한 시간", "보호중인 장소"],
   "3": ["반려동물 정보"],
 };
+
+export const table: { [key: string]: string } = {
+  "0": "실종 게시글 작성",
+  "1": "목격 게시글 작성",
+  "2": "보호 게시글 작성",
+  "3": "분양 게시글 작성",
+};

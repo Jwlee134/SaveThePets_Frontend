@@ -131,13 +131,6 @@ export const getPostDetail = ({ queryKey }: QueryFunctionContext) =>
 export const getMyLostPosts = () =>
   instance.get<PostResponse[]>("/post/mylost").then((res) => res.data);
 
-export const getAnalyzedPictureResult = (data: FormData) =>
-  instance
-    .post<AnalyzedPicture>("/post/analyze", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-    .then((res) => res.data);
-
 // ReportController
 
 export const createReport = (data: ReportBody) =>

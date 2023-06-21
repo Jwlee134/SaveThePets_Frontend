@@ -177,10 +177,10 @@ const breeds = {
     const data = event.data?.json();
     let body;
 
-    if (data.nickname) {
-      body = `${data.nickname}님이 ${breeds[data.species][data.breed]} ${
-        table[data.type]
-      } 게시글에 댓글을 남겼습니다.`;
+    if (data.type === 4) {
+      body = `${data.nickname || "Anonymous"}님이 ${
+        breeds[data.species][data.breed]
+      } ${table[data.type]} 게시글에 댓글을 남겼습니다.`;
     } else {
       body = `${
         breeds[data.species][data.breed]
