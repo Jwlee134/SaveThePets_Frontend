@@ -23,7 +23,12 @@ export default function InfoWindow({
   return (
     <Link href={`/posts/${id}`}>
       <div className="relative aspect-[4/3]">
-        <Image src={picture} alt="sample" fill className="object-cover" />
+        <Image
+          src={picture}
+          alt={id.toString()}
+          fill
+          className="object-cover"
+        />
         {type !== undefined && (
           <div className="absolute text-white backdrop-blur-xl w-full bottom-0 font-light text-sm h-6 grid place-items-center">
             {convertFromType(type)}

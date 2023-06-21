@@ -27,6 +27,7 @@ export default function AnalyzeBreedButton() {
       message.success({
         content: `품종 ${breeds[speciesBreed[0]][data]} 적용 완료.`,
       });
+      form.setFieldValue("speciesBreed", [speciesBreed[0], data]);
     },
     onSettled() {
       setIsLoading(false);
@@ -48,8 +49,9 @@ export default function AnalyzeBreedButton() {
     setIsLoading(true);
     const data = new FormData();
     images.forEach((item, i) => {
-      data.append(`image${i}`, item.data);
+      data.append(`image${i + i}`, item.data);
     });
+    data.append("species", speciesBreed[0]);
     mutate(data);
   }
 

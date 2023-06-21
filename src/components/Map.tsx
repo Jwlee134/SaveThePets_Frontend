@@ -1,10 +1,4 @@
-import {
-  MutableRefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Marker from "./Marker";
 import { useQuery } from "@tanstack/react-query";
 import useMap, { IdleCallbackArgs } from "@/libs/hooks/useMap";

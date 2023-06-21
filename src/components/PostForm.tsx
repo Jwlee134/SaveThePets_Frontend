@@ -40,6 +40,7 @@ export default function PostForm({
   initialData,
 }: PostFormProps) {
   const [form] = Form.useForm<PostFormValues>();
+  const speciesBreed = Form.useWatch("speciesBreed", form);
   const param = useSearchParams().get("type")!;
 
   // 수정 페이지일 경우 초기 데이터 설정
@@ -128,11 +129,11 @@ export default function PostForm({
                     form.setFieldValue("speciesBreed", e);
                   }}
                   changeOnSelect
+                  value={speciesBreed}
                 />
                 {param === "1" || param === "2" ? <AnalyzeBreedButton /> : null}
               </div>
             </Form.Item>
-
             <Form.Item
               label={
                 <div>

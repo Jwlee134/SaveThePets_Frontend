@@ -13,7 +13,6 @@ export default function Page() {
   const { data } = useQuery({
     queryKey: ["posts", id],
     queryFn: getPostDetail,
-    suspense: true,
   });
 
   return (
