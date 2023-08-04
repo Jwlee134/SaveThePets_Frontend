@@ -1,4 +1,4 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 import Spinner from "./Spinner";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -14,11 +14,10 @@ export default function Marker({ url, isLoading }: MarkerProps) {
       animate={{ opacity: 1 }}
       className="w-20 h-20 relative rounded-full overflow-hidden shadow-lg"
     >
-      <Image
+      <img
         src={url}
         alt="thumbnail"
-        fill
-        className="border-white border-4 object-cover rounded-full"
+        className="border-white border-4 object-cover rounded-full absolute inset-0 w-full h-full"
       />
       <AnimatePresence>
         {isLoading && (

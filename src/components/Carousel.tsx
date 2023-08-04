@@ -1,4 +1,4 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 import useEmblaCarousel, { EmblaCarouselType } from "embla-carousel-react";
 import { useCallback, useEffect, useState } from "react";
 import { Indicator, NextBtn, PrevBtn } from "./CarouselInteractions";
@@ -45,7 +45,11 @@ export default function Carousel() {
               key={i}
               className="relative min-w-0 flex-[0_0_100%] aspect-square"
             >
-              <Image src={src} alt="photo" fill className="object-cover" />
+              <img
+                src={src}
+                alt="photo"
+                className="object-cover absolute inset-0 w-full h-full"
+              />
             </div>
           ))}
         </div>

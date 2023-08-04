@@ -192,3 +192,14 @@ export const getAddress = (lat: number, lng: number) =>
   axios
     .get<{ result: string }>(`/api/address?lat=${lat}&lng=${lng}`)
     .then((res) => res.data);
+
+export const createAnalyzedBreed = (data: FormData) =>
+  axios
+    .post<number>(
+      "http://localhost:8000/breed_classification/classify/",
+      data,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    )
+    .then((res) => res.data);

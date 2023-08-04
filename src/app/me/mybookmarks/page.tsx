@@ -9,6 +9,7 @@ export default function MyBookmarks() {
     queryKey: ["me", "bookmarks"],
     queryFn: getBookmarks,
     useErrorBoundary: true,
+    suspense: true,
   });
 
   return (

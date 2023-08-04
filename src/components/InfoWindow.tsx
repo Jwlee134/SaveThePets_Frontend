@@ -1,4 +1,4 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { breeds } from "@/libs/constants";
 import { convertFromType, formatTime } from "@/libs/utils";
@@ -23,11 +23,10 @@ export default function InfoWindow({
   return (
     <Link href={`/posts/${id}`}>
       <div className="relative aspect-[4/3]">
-        <Image
+        <img
           src={picture}
           alt={id.toString()}
-          fill
-          className="object-cover"
+          className="object-cover absolute w-full h-full inset-0"
         />
         {type !== undefined && (
           <div className="absolute text-white backdrop-blur-xl w-full bottom-0 font-light text-sm h-6 grid place-items-center">

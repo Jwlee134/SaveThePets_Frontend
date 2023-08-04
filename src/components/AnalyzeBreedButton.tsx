@@ -1,27 +1,17 @@
 import { Button, message } from "antd";
 import useFormInstance from "antd/es/form/hooks/useFormInstance";
-import axios from "axios";
 import { useState } from "react";
 import { FileObj, PostFormValues } from "./PostForm";
 import { useMutation } from "@tanstack/react-query";
 import { breeds } from "@/libs/constants";
-
-async function getResult(data: FormData) {
-  return axios
-    .post<number>(
-      "http://localhost:8000/breed_classification/classify/",
-      data,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    )
-    .then((res) => res.data);
-}
+import { createAnalyzedBreed } from "@/libs/api";
 
 export default function AnalyzeBreedButton() {
   const form = useFormInstance<PostFormValues>();
 
   const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useMutation({
-    mutationFn: getResult,
+    mutationFn: createAnalyzedBreed,
     onSuccess(data) {
       const speciesBreed = form.getFieldValue("speciesBreed");
       message.success({
@@ -49,7 +39,7 @@ export default function AnalyzeBreedButton() {
     setIsLoading(true);
     const data = new FormData();
     images.forEach((item, i) => {
-      data.append(`image${i + i}`, item.data);
+      data.append(`image${i + 1}`, item.data);
     });
     data.append("species", speciesBreed[0]);
     mutate(data);
