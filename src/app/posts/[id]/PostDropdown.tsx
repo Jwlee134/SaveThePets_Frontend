@@ -1,8 +1,7 @@
 import { deletePost, getPostDetail } from "@/libs/api";
 import useIsReady from "@/libs/hooks/useIsReady";
-import useBoundStore from "@/libs/store";
+import useMe from "@/libs/hooks/useMe";
 import usePersistStore from "@/libs/store/usePersistStore";
-import { convertFromType } from "@/libs/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Dropdown, Modal, message } from "antd";
 import { useParams, useRouter } from "next/navigation";
@@ -13,7 +12,6 @@ export default function PostDropdown() {
   const router = useRouter();
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const setValues = useBoundStore(({ postForm }) => postForm.setValues);
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const isReady = useIsReady();
   const { data } = useQuery({
@@ -24,11 +22,13 @@ export default function PostDropdown() {
     mutationFn: () => deletePost(id),
     useErrorBoundary: true,
     onSuccess() {
+      setIsModalOpen(false);
       message.success({ content: "게시글이 삭제되었습니다." });
       router.back();
     },
     onSettled: handleClose,
   });
+  const me = useMe();
 
   function showModal() {
     setIsModalOpen(true);
@@ -40,16 +40,7 @@ export default function PostDropdown() {
 
   function handleEditClick() {
     if (!data) return;
-    setValues({
-      photos: data.pictures,
-      ...(data.time && { time: data.time }),
-      ...(data.content && { content: data.content }),
-      ...(data.species && { species: data.species }),
-      ...(data.breed && { breed: data.breed }),
-      ...(data.lat && { lat: data.lat }),
-      ...(data.lot && { lng: data.lot }),
-    });
-    router.push(`/posts/${id}/edit?type=${convertFromType(data.type)}`);
+    router.push(`/posts/${id}/edit?type=${data.type}`);
   }
 
   if (!isReady || !isLoggedIn) return null;
@@ -58,16 +49,20 @@ export default function PostDropdown() {
       <Dropdown
         menu={{
           items: [
-            {
-              label: "수정",
-              key: "0",
-              onClick: handleEditClick,
-            },
-            {
-              label: "삭제",
-              key: "1",
-              onClick: showModal,
-            },
+            ...(me?.userId === data?.userid
+              ? [
+                  {
+                    label: "수정",
+                    key: "0",
+                    onClick: handleEditClick,
+                  },
+                  {
+                    label: "삭제",
+                    key: "1",
+                    onClick: showModal,
+                  },
+                ]
+              : []),
             {
               label: "신고",
               key: "2",

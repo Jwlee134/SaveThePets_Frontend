@@ -1,5 +1,3 @@
-"use client";
-
 import axios from "axios";
 import usePersistStore from "../store/usePersistStore";
 import {
@@ -13,6 +11,7 @@ import {
   PostDetailResponse,
   PostResponse,
   PostsMapQueryParams,
+  PushSubscriptionBody,
   ReportBody,
   TimelineBody,
   UpdateCommentBody,
@@ -112,9 +111,7 @@ export const deletePost = (postId: string) =>
     .then((res) => res.data);
 
 export const getPostsGrid = ({ pageParam = 1 }: QueryFunctionContext) =>
-  instance
-    .get<PostResponse[]>(`/post/list/${pageParam}`)
-    .then((res) => res.data);
+  instance.get<PostResponse[]>(`/post/list`).then((res) => res.data);
 
 export const getPostsMap = ({ queryKey }: QueryFunctionContext) =>
   instance
@@ -133,13 +130,6 @@ export const getPostDetail = ({ queryKey }: QueryFunctionContext) =>
 
 export const getMyLostPosts = () =>
   instance.get<PostResponse[]>("/post/mylost").then((res) => res.data);
-
-export const getAnalyzedPictureResult = (data: FormData) =>
-  instance
-    .post<AnalyzedPicture>("/post/analyze", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-    .then((res) => res.data);
 
 // ReportController
 
@@ -171,6 +161,9 @@ export const updateAvatar = (data: FormData) =>
     })
     .then((res) => res.data);
 
+export const postPushSubscription = (data: PushSubscriptionBody) =>
+  instance.post<boolean>("/user/push", data).then((res) => res.data);
+
 export const getMe = () =>
   instance.get<MeResponse>("/user/info").then((res) => res.data);
 
@@ -198,4 +191,15 @@ export const getJwtToken = (code: string) =>
 export const getAddress = (lat: number, lng: number) =>
   axios
     .get<{ result: string }>(`/api/address?lat=${lat}&lng=${lng}`)
+    .then((res) => res.data);
+
+export const createAnalyzedBreed = (data: FormData) =>
+  axios
+    .post<number>(
+      "http://localhost:8000/breed_classification/classify/",
+      data,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    )
     .then((res) => res.data);

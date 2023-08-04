@@ -1,6 +1,5 @@
 import useBoundStore from "@/libs/store";
 import { createNotificationText, formatCreatedAt } from "@/libs/utils";
-import Image from "next/image";
 import { IoTrashOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
 import { NotificationResponse } from "@/libs/api/types";
@@ -8,6 +7,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteNotification, getNotifications } from "@/libs/api";
 import Link from "next/link";
 import { breeds } from "@/libs/constants";
+import { MouseEvent } from "react";
+import { Avatar } from "antd";
+import { AiOutlineUser } from "react-icons/ai";
 
 export default function NotificationItem({
   timestamp,
@@ -17,6 +19,7 @@ export default function NotificationItem({
   species,
   alarmId,
   postId,
+  picture,
 }: NotificationResponse) {
   const queryClient = useQueryClient();
   const isDeleteMode = useBoundStore(
@@ -48,44 +51,56 @@ export default function NotificationItem({
     useErrorBoundary: true,
   });
 
-  function onDeleteClick() {
+  function onDeleteClick(
+    e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>
+  ) {
+    e.preventDefault();
     mutate(alarmId);
   }
 
   return (
-    <Link href={nickname ? `/posts/${postId}/comments` : `/posts/${postId}`}>
-      <motion.div
-        className="flex relative"
-        animate={{ translateX: isDeleteMode ? -48 : 0 }}
+    <motion.li
+      layout
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+    >
+      <Link
+        href={nickname ? `/posts/${postId}/comments` : `/posts/${postId}`}
+        className="mb-4"
       >
-        <div className="shrink-0 mr-3">
-          <Image
-            width={64}
-            height={64}
-            src="/sample.png"
-            alt="thumbnail"
-            className="object-cover rounded-full"
-          />
-        </div>
-        <p className="text-sm">
-          {createNotificationText(type, {
-            breed: breeds[species][breed],
-            nickname,
-          })}
-          <span className="ml-2 text-gray-500 whitespace-nowrap">
-            {formatCreatedAt(timestamp)}
-          </span>
-        </p>
-        <motion.button
-          initial={false}
-          animate={{ opacity: isDeleteMode ? 1 : 0 }}
-          className="absolute w-12 h-full grid place-items-center -right-12"
-          onClick={onDeleteClick}
-          disabled={!isDeleteMode}
+        <motion.div
+          className="flex relative"
+          animate={{ translateX: isDeleteMode ? -48 : 0 }}
         >
-          <IoTrashOutline className="text-lg text-red-500" />
-        </motion.button>
-      </motion.div>
-    </Link>
+          <div className="shrink-0 mr-3">
+            <Avatar
+              size={64}
+              src={picture}
+              icon={<AiOutlineUser className="text-3xl" />}
+              className="flex justify-center items-center shrink-0"
+            />
+          </div>
+          <p className="text-sm">
+            {createNotificationText(type, {
+              breed: breeds[species][breed],
+              nickname,
+            })}
+            <span className="ml-2 text-gray-500 whitespace-nowrap">
+              {formatCreatedAt(timestamp)}
+            </span>
+          </p>
+          <motion.button
+            initial={false}
+            animate={{ opacity: isDeleteMode ? 1 : 0 }}
+            className="absolute w-12 h-full grid place-items-center -right-12"
+            onClick={onDeleteClick}
+            disabled={!isDeleteMode}
+          >
+            <IoTrashOutline className="text-lg text-red-500" />
+          </motion.button>
+        </motion.div>
+      </Link>
+    </motion.li>
   );
 }

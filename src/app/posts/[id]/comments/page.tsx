@@ -5,12 +5,14 @@ import CommentForm from "./CommentForm";
 import Comment from "./Comment";
 import { getPostDetail } from "@/libs/api";
 import { breeds } from "@/libs/constants";
+import { useParams } from "next/navigation";
+import { AnimatePresence } from "framer-motion";
 
-export default function Page({ params: { id = "" } = {} }) {
+export default function Page() {
+  const { id } = useParams();
   const { data } = useQuery({
     queryKey: ["posts", id],
     queryFn: getPostDetail,
-    suspense: true,
   });
 
   return (
@@ -20,11 +22,14 @@ export default function Page({ params: { id = "" } = {} }) {
         <div>{data && data.content}</div>
       </div>
       <CommentForm />
-      <div className="p-4 space-y-6">
-        {data?.comments?.map((comment) => (
-          <Comment key={comment.commentId} {...comment} />
-        ))}
-      </div>
+      <ul className="p-4 space-y-6">
+        <AnimatePresence>
+          {data &&
+            data.comments.map((comment) => (
+              <Comment key={comment.commentId} {...comment} />
+            ))}
+        </AnimatePresence>
+      </ul>
     </>
   );
 }

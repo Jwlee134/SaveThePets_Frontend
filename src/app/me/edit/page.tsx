@@ -7,15 +7,12 @@ import useMe from "@/libs/hooks/useMe";
 import { getBase64 } from "@/libs/utils";
 import { useMutation } from "@tanstack/react-query";
 import { updateAvatar, updateNickname } from "@/libs/api";
+import { AiOutlineUser } from "react-icons/ai";
 
 interface Data {
   avatar: FileObj;
   nickname: string;
 }
-
-/* 
-  TODO: 성공 메시지 띄우기
-*/
 
 export default function Page() {
   const me = useMe();
@@ -25,27 +22,34 @@ export default function Page() {
     mutationFn: updateNickname,
     useErrorBoundary: true,
     onSuccess(ok) {
-      if (!ok) message.warning({ content: "이미 존재하는 닉네임입니다." });
+      if (!ok) {
+        message.warning({ content: "이미 존재하는 닉네임입니다." });
+      } else {
+        if (avatar) {
+          const formData = new FormData();
+          formData.append("picture", avatar.data);
+          updateAva(formData);
+        } else {
+          message.success({ content: "수정되었습니다." });
+        }
+      }
     },
   });
   const { mutate: updateAva, isLoading: isAvaLoading } = useMutation({
     mutationFn: updateAvatar,
     useErrorBoundary: true,
+    onSuccess() {
+      message.success({ content: "수정되었습니다." });
+    },
   });
   const isLoading = isNickLoading || isAvaLoading;
 
-  function handleSubmit() {
-    const { avatar, nickname } = form.getFieldsValue();
+  function handleSubmit({ nickname, avatar }: Data) {
     if (nickname === me?.nickname && !avatar) {
       message.info({ content: "수정할 내용이 없습니다." });
       return;
     }
-    if (nickname !== me?.nickname) updateNick(nickname);
-    if (avatar) {
-      const formData = new FormData();
-      formData.append("picture", avatar.data);
-      updateAva(formData);
-    }
+    updateNick(nickname);
   }
 
   async function handleChange(e: ChangeEvent<HTMLInputElement>) {
@@ -60,9 +64,15 @@ export default function Page() {
       form={form}
       className="h-[var(--fit-screen)] p-6 flex flex-col justify-between"
       requiredMark={false}
+      onFinish={handleSubmit}
     >
       <div className="flex flex-col items-center">
-        <Avatar size={128} src={me?.picture || avatar?.url} className="mb-2" />
+        <Avatar
+          icon={<AiOutlineUser className="text-7xl" />}
+          size={128}
+          src={avatar?.url || me?.picture}
+          className="flex justify-center items-center shrink-0 mb-2"
+        />
         <label htmlFor="avatar" className="text-gray-400 cursor-pointer mt-2">
           사진 변경
           <input
@@ -90,7 +100,6 @@ export default function Page() {
         htmlType="submit"
         block
         className="flex items-center justify-center"
-        onClick={handleSubmit}
         loading={isLoading}
       >
         수정

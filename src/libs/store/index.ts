@@ -5,12 +5,10 @@ import {
   NotificationSlice,
   createNotificationSlice,
 } from "./notificationSlice";
-import { PostFormSlice, createPostFormSlice } from "./postFormSlice";
 import { CommentSlice, createCommentSlice } from "./commentSlice";
 
 interface BoundStore {
   notification: NotificationSlice;
-  postForm: PostFormSlice;
   comment: CommentSlice;
 }
 
@@ -25,7 +23,6 @@ const useBoundStore = create<BoundStore>()(
   devtools(
     immer((...a) => ({
       notification: createNotificationSlice(...a),
-      postForm: createPostFormSlice(...a),
       comment: createCommentSlice(...a),
     }))
   )

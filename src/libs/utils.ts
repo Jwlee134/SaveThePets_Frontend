@@ -19,7 +19,7 @@ export function hidePolyline(polyline: naver.maps.Polyline) {
 }
 
 export function formatCreatedAt(date: string) {
-  const start = new Date(date).getTime();
+  const start = new Date(dayjs(date).add(9, "hours").toISOString()).getTime();
   const end = Date.now();
   const diff = (end - start) / 1000;
   const times = [
@@ -91,10 +91,10 @@ export function createNotificationText(
   type: number,
   { nickname, breed }: { nickname?: string; breed?: string }
 ) {
-  if (nickname && breed)
-    return `${nickname}님이 ${breed} ${convertFromType(
-      type
-    )} 게시글에 댓글을 남겼습니다.`;
+  if (type === 4)
+    return `${
+      nickname || "Anonymous"
+    }님이 ${breed} 게시글에 댓글을 남겼습니다.`;
   if (breed) {
     if (type === 1)
       return `${breed}의 실종 위치 근처에 ${breed}로 추정되는 동물이 목격되었습니다. 클릭하여 확인해 보세요.`;
@@ -103,5 +103,5 @@ export function createNotificationText(
 }
 
 export function formatTime(time: string) {
-  return dayjs(time).format("YYYY-MM-DD, HH:mm");
+  return dayjs(time).add(9, "hours").format("YYYY-MM-DD, HH:mm");
 }

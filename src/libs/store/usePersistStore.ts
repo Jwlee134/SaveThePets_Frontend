@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type HomeViewOpt = "map" | "grid";
+export type HomeViewOpt = "map" | "grid";
 
 type PostTimelineViewOpt = "map" | "timeline";
 

@@ -16,7 +16,7 @@ export default function Page() {
     useErrorBoundary: true,
     onSuccess({ token }) {
       setAuth({ isLoggedIn: true, token });
-      router.back();
+      router.replace("/");
     },
   });
 

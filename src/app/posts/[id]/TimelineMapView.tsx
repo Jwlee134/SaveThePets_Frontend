@@ -16,7 +16,7 @@ export default function TimelineMapView() {
     queryFn: getPostDetail,
   });
   const ref = useRef<HTMLDivElement>(null);
-  const { map, panToBounds } = useMap(ref);
+  const { map, panToBounds } = useMap(ref, { lat: data?.lat, lng: data?.lot });
   const { infoWindowObj, timelineNodesArr, setTimelineMarkers } = useTimeline(
     map,
     panToBounds

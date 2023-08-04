@@ -1,11 +1,11 @@
-import { createComment, updateComment } from "@/libs/api";
+import { createComment, getPostDetail, updateComment } from "@/libs/api";
 import { PostDetailResponse } from "@/libs/api/types";
 import useIsReady from "@/libs/hooks/useIsReady";
 import useMe from "@/libs/hooks/useMe";
 import useBoundStore from "@/libs/store";
 import usePersistStore from "@/libs/store/usePersistStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Form, Input } from "antd";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Form, Input, message } from "antd";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
@@ -15,6 +15,10 @@ export default function CommentForm() {
   const me = useMe();
   const params = useParams();
   const queryClient = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["posts", params.id],
+    queryFn: getPostDetail,
+  });
   const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
   const { isEdit, id, value, disableEditMode } = useBoundStore(
     ({ comment }) => ({
@@ -36,7 +40,10 @@ export default function CommentForm() {
   const { mutate: create, isLoading } = useMutation({
     mutationFn: createComment,
     useErrorBoundary: true,
-    onSuccess: onSettled,
+    onSuccess(data) {
+      if (!data) message.warning({ content: "댓글 등록에 실패했습니다." });
+      else onSettled();
+    },
   });
   const { mutate: update } = useMutation({
     mutationFn: updateComment,
@@ -47,6 +54,7 @@ export default function CommentForm() {
         "posts",
         params.id,
       ])!;
+      form.setFieldValue("value", "");
       queryClient.setQueryData(["posts", params.id], {
         ...prevData,
         comments: prevData.comments.map((comment) =>
@@ -65,12 +73,12 @@ export default function CommentForm() {
   });
 
   function handleFinish({ value }: { value: string }) {
-    if (!me) return;
-    if (isEdit) {
+    if (!me || !data) return;
+    if (!isEdit) {
       create({
         content: value,
         postId: parseInt(params.id),
-        userId: me.userId,
+        userId: data.userid,
       });
     } else {
       update({
