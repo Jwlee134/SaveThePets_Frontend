@@ -95,7 +95,7 @@ export interface AnalyzedPicture {
 export interface ReportBody {
   objectId: number;
   reportType: number;
-  reportReason?: string;
+  reportReason: string;
   type: boolean;
 }
 

@@ -30,7 +30,7 @@ export default function TimelineMapView() {
       picture: data.pictures[0],
       postLat: data.lat,
       postLot: data.lot,
-      sightingPostId: parseInt(id),
+      sightingPostId: parseInt(id as string),
       species: data.species,
       time: data.time,
     };

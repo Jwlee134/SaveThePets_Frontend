@@ -1,6 +1,8 @@
 "use client";
 
-import { Button, Form, Input, Radio } from "antd";
+import { createReport } from "@/libs/api";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Form, Input, Radio, message } from "antd";
 import { useParams } from "next/navigation";
 
 export default function ReportForm() {
@@ -8,9 +10,21 @@ export default function ReportForm() {
   const [form] = Form.useForm();
   const disableTextArea = Form.useWatch("radio", form) !== "4";
   const disableBtn = !Form.useWatch("radio", form);
+  const { mutate, isLoading } = useMutation({
+    mutationFn: createReport,
+    onSuccess() {
+      message.success({ content: "신고가 완료되었습니다." });
+    },
+    useErrorBoundary: true,
+  });
 
   function handleFinish({ radio, text }: { radio: string; text?: string }) {
-    console.log(radio, text, params);
+    mutate({
+      objectId: params?.cid ? +params.cid : +params.id,
+      type: !params?.cid,
+      reportReason: +radio === 4 && text ? text : "",
+      reportType: +radio - 1,
+    });
   }
 
   return (
@@ -50,7 +64,12 @@ export default function ReportForm() {
         </Form.Item>
       </div>
       <Form.Item className="mb-0">
-        <Button block htmlType="submit" disabled={disableBtn}>
+        <Button
+          block
+          htmlType="submit"
+          disabled={disableBtn}
+          loading={isLoading}
+        >
           신고
         </Button>
       </Form.Item>

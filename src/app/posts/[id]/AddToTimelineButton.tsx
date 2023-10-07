@@ -36,7 +36,7 @@ export default function AddToTimelineButton() {
   }
 
   function handleFinish() {
-    mutate({ missingPostId: value, sightPostId: parseInt(id) });
+    mutate({ missingPostId: value, sightPostId: parseInt(id as string) });
   }
 
   function handleCancel() {

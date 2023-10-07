@@ -77,7 +77,7 @@ export default function CommentForm() {
     if (!isEdit) {
       create({
         content: value,
-        postId: parseInt(params.id),
+        postId: parseInt(params.id as string),
         userId: data.userid,
       });
     } else {

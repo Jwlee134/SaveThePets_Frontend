@@ -1,5 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { IoClose } from "react-icons/io5";
 import { FileObj } from "./PostForm";
 
@@ -17,7 +17,11 @@ export default function Photo({ file, onDeleteClick }: PhotoProps) {
       exit={{ scale: 0.8, opacity: 0 }}
       className="border flex-shrink-0 relative w-32 h-32 overflow-hidden rounded-md"
     >
-      <Image src={file.url} alt="thumbnail" fill className="object-cover" />
+      <img
+        src={file.url}
+        alt="thumbnail"
+        className="object-cover absolute w-full h-full inset-0"
+      />
       <button
         onClick={() => {
           onDeleteClick(file);

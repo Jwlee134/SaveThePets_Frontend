@@ -3,6 +3,7 @@ import NewButton from "@/components/NewButton";
 import Home from "./Home";
 import HomeViewToggleButton from "@/components/HomeViewToggleButton";
 import FilterButton from "@/components/FilterButton";
+import { Metadata } from "next";
 
 /* 
   https://nextjs.org/docs/getting-started/react-essentials#client-components
@@ -15,6 +16,10 @@ import FilterButton from "@/components/FilterButton";
 
   대안으로 useLayoutEffect에서 isReady를 true로 바꾸고 true가 되면 컴포넌트들을 렌더링한다.
 */
+
+export const metadata: Metadata = {
+  title: "Save the Pets",
+};
 
 export default function Page() {
   return (
