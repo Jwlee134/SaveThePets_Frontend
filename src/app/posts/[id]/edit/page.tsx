@@ -36,9 +36,11 @@ export default function Page() {
     const formData = new FormData();
     formData.append("postId", id);
     for (const photo of data.photos) formData.append("pictures", photo.data);
-    formData.append("species", data.speciesBreed[0].toString());
-    formData.append("breed", data.speciesBreed[1].toString());
-    if (data.date && data.time)
+    if (data?.speciesBreed?.length) {
+      formData.append("species", data.speciesBreed[0].toString());
+      formData.append("breed", data.speciesBreed[1].toString());
+    }
+    if (data?.date && data?.time)
       formData.append(
         "time",
         new Date(
@@ -47,7 +49,7 @@ export default function Page() {
           .toISOString()
           .split(".")[0]
       );
-    if (data.coords) {
+    if (data?.coords?.length) {
       const address = (await getAddress(data.coords[0], data.coords[1])).result;
       formData.append("address", address);
       formData.append("postLat", data.coords[0].toString());

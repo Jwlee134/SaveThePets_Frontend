@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { getMyComments } from "@/libs/api";
-import { convertFromType } from "@/libs/utils";
+import { breeds } from "@/libs/constants";
+import { convertFromType, formatTime } from "@/libs/utils";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import Link from "next/link";
 
 export default function MyComments() {
@@ -11,18 +12,18 @@ export default function MyComments() {
     queryKey: ["me", "comments"],
     queryFn: getMyComments,
     useErrorBoundary: true,
+    suspense: true,
   });
 
   return (
-    <div>
+    <div className="p-3 space-y-3">
       {data?.map((item, i) => (
-        <Link key={i} href={`/posts/${item.postId}/comments`}>
-          <div className="relative aspect-square">
-            <Image
+        <Link key={i} href={`/posts/${item.postId}/comments`} className="flex">
+          <div className="relative w-40 aspect-square rounded-md overflow-hidden shrink-0">
+            <img
               src={item.picture}
               alt="sample"
-              fill
-              className="object-cover"
+              className="object-cover absolute inset-0 w-full h-full"
             />
             {item.type !== undefined && (
               <div className="absolute text-white backdrop-blur-xl w-full bottom-0 font-light text-sm h-6 grid place-items-center">
@@ -30,14 +31,16 @@ export default function MyComments() {
               </div>
             )}
           </div>
-          {/* <div className="py-1 px-2">
-        <h1 className="overflow-hidden text-ellipsis whitespace-nowrap">
-          {breeds[species][breed]}
-        </h1>
-        <p className="text-gray-500 text-xs text-ellipsis overflow-hidden whitespace-nowrap">
-          {formatTime(time)}
-        </p>
-      </div> */}
+          <div className="pl-2">
+            <div className="py-1">
+              <h1 className="overflow-hidden text-ellipsis whitespace-nowrap text-xl">
+                {breeds[item.species][item.breed]}
+              </h1>
+            </div>
+            <div className="font-light text-sm break-all line-clamp-6">
+              {item.content}
+            </div>
+          </div>
         </Link>
       ))}
     </div>
