@@ -19,7 +19,7 @@ export default function PostDropdown() {
     queryKey: ["posts", id],
   });
   const { mutate, isLoading } = useMutation({
-    mutationFn: () => deletePost(id),
+    mutationFn: () => deletePost(id as string),
     useErrorBoundary: true,
     onSuccess() {
       setIsModalOpen(false);

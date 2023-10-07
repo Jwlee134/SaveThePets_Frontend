@@ -34,7 +34,7 @@ export default function Page() {
   async function handleSubmit(data: PostFormValues) {
     setIsLoading(true);
     const formData = new FormData();
-    formData.append("postId", id);
+    formData.append("postId", id as string);
     for (const photo of data.photos) formData.append("pictures", photo.data);
     if (data?.speciesBreed?.length) {
       formData.append("species", data.speciesBreed[0].toString());

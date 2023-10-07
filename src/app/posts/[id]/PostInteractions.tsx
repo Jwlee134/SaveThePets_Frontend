@@ -49,7 +49,7 @@ export default function PostInteractions() {
     queryKey: ["posts", id],
   });
   const { mutate: createBm } = useMutation({
-    mutationFn: () => createBookmark(id),
+    mutationFn: () => createBookmark(id as string),
     useErrorBoundary: true,
     onMutate() {
       return onMutate(true);
@@ -60,7 +60,7 @@ export default function PostInteractions() {
     onSettled,
   });
   const { mutate: deleteBm } = useMutation({
-    mutationFn: () => deleteBookmark(id),
+    mutationFn: () => deleteBookmark(id as string),
     useErrorBoundary: true,
     onMutate() {
       return onMutate(false);

@@ -64,7 +64,7 @@ export default function TimelineDeleteModal() {
             className="text-red-500 text-lg"
             onClick={() => {
               mutate({
-                missingPostId: parseInt(id),
+                missingPostId: parseInt(id as string),
                 sightPostId: item.sightingPostId,
               });
             }}

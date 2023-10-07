@@ -12,7 +12,6 @@ export default function MyComments() {
     queryKey: ["me", "comments"],
     queryFn: getMyComments,
     useErrorBoundary: true,
-    suspense: true,
   });
 
   return (

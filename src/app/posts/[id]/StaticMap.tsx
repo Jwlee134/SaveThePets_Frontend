@@ -23,7 +23,7 @@ export default function StaticMap() {
         anchor: new naver.maps.Point(18, 36),
       },
     });
-    const node = document.getElementById(params.id);
+    const node = document.getElementById(params.id as string);
     if (node) setMarker(node);
     map.current?.setCenter(new naver.maps.LatLng(lat, lng));
 
