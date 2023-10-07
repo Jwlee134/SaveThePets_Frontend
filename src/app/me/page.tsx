@@ -1,15 +1,10 @@
-"use client";
+import { Metadata } from "next";
+import MyPage from "./MyPage";
 
-import usePersistStore from "@/libs/store/usePersistStore";
-import LoginRequired from "@/components/LoginRequired";
-import Me from "./Me";
-import useIsReady from "@/libs/hooks/useIsReady";
+export const metadata: Metadata = {
+  title: "내 정보",
+};
 
 export default function Page() {
-  const isReady = useIsReady();
-  const isLoggedIn = usePersistStore((state) => state.auth.isLoggedIn);
-
-  if (!isReady) return null;
-  if (!isLoggedIn) return <LoginRequired />;
-  return <Me />;
+  return <MyPage />;
 }
