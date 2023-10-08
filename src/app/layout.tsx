@@ -24,7 +24,6 @@ export default function RootLayout({
         </main>
         <Script
           src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_MAP_CLIENT_ID}`}
-          strategy="beforeInteractive"
         />
       </body>
     </html>
