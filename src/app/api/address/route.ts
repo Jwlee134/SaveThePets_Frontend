@@ -15,9 +15,10 @@ export async function GET(request: Request) {
     }
   );
   const data = await res.json();
-  const result = data.results.length
-    ? `${data.results[0].region.area1.name} ${data.results[0].region.area2.name} ${data.results[0].region.area3.name}`
-    : "주소 정보 없음";
+  const result =
+    data?.results?.length > 0
+      ? `${data.results[0].region.area1.name} ${data.results[0].region.area2.name} ${data.results[0].region.area3.name}`
+      : "주소 정보 없음";
 
   return NextResponse.json({ result });
 }
