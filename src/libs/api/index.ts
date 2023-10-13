@@ -18,7 +18,9 @@ import {
 } from "./types";
 import { QueryFunctionContext } from "@tanstack/react-query";
 
-const instance = axios.create({ baseURL: "http://localhost:8080" });
+const instance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_SERVER_URI,
+});
 
 instance.interceptors.request.use((config) => {
   const token = usePersistStore.getState().auth.token;
