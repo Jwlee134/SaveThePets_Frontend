@@ -7,11 +7,13 @@ import dayjs from "dayjs";
 import "dayjs/locale/ko";
 import locale from "antd/es/date-picker/locale/ko_KR";
 import Photos from "./Photos";
-import FormMap from "./FormMap";
 import { postFormTable, speciesBreedsOption } from "@/libs/constants";
 import { PostDetailResponse } from "@/libs/api/types";
 import { getBase64 } from "@/libs/utils";
 import AnalyzeBreedButton from "./AnalyzeBreedButton";
+import dynamic from "next/dynamic";
+
+const FormMap = dynamic(() => import("./FormMap"), { ssr: false });
 
 export interface PostFormValues {
   date: dayjs.Dayjs;
@@ -131,7 +133,9 @@ export default function PostForm({
                   changeOnSelect
                   value={speciesBreed}
                 />
-                {param === "1" || param === "2" ? <AnalyzeBreedButton /> : null}
+                {param === "1" || param === "2" ? (
+                  <AnalyzeBreedButton form={form} />
+                ) : null}
               </div>
             </Form.Item>
             <Form.Item

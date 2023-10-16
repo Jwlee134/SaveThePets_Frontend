@@ -9,9 +9,9 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props) {
-  const detail = await fetch(`http://localhost:8080/post/${params.id}`).then(
-    (res) => res.json()
-  );
+  const detail = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URI}/post/${params.id}`
+  ).then((res) => res.json());
   return { title: breeds[detail.species][detail.breed] };
 }
 
