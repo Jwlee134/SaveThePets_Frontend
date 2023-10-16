@@ -1,4 +1,4 @@
-import { Button, message } from "antd";
+import { Button, FormInstance, message } from "antd";
 import useFormInstance from "antd/es/form/hooks/useFormInstance";
 import { useState } from "react";
 import { FileObj, PostFormValues } from "./PostForm";
@@ -6,9 +6,11 @@ import { useMutation } from "@tanstack/react-query";
 import { breeds } from "@/libs/constants";
 import { createAnalyzedBreed } from "@/libs/api";
 
-export default function AnalyzeBreedButton() {
-  const form = useFormInstance<PostFormValues>();
-
+export default function AnalyzeBreedButton({
+  form,
+}: {
+  form: FormInstance<PostFormValues>;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useMutation({
     mutationFn: createAnalyzedBreed,
