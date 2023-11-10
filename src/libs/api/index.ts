@@ -198,7 +198,7 @@ export const getAddress = (lat: number, lng: number) =>
 export const createAnalyzedBreed = (data: FormData) =>
   axios
     .post<number>(
-      "http://localhost:8000/breed_classification/classify/",
+      `${process.env.NEXT_PUBLIC_AI_SERVER_URI}/breed_classification/classify/`,
       data,
       {
         headers: { "Content-Type": "multipart/form-data" },
