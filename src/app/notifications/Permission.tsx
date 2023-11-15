@@ -1,5 +1,3 @@
-import { postPushSubscription } from "@/libs/api";
-import { useMutation } from "@tanstack/react-query";
 import { Button, Modal, message } from "antd";
 import { Dispatch, SetStateAction } from "react";
 import { IoNotifications } from "react-icons/io5";
@@ -9,42 +7,12 @@ export default function Permission({
 }: {
   setIsLoading: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { mutate } = useMutation({
-    mutationFn: postPushSubscription,
-    onSettled() {
-      setIsLoading(false);
-    },
-  });
-
   function handlePermission() {
     setIsLoading(true);
     if (Notification.permission !== "denied") {
       Notification.requestPermission().then((permission) => {
         if (permission === "denied")
           message.error("알림 권한이 거부되었습니다.");
-        if (permission === "granted") {
-          navigator.serviceWorker.register("/sw.js").then((registration) => {
-            registration.pushManager.getSubscription().then((subscription) => {
-              if (subscription) {
-                const { endpoint = "", keys: { p256dh, auth } = {} } =
-                  subscription.toJSON();
-                mutate({ endpoint, p256dh, auth });
-              } else {
-                registration.pushManager
-                  .subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey:
-                      "BLkjZY4KvUxeO7rBDQd8SIkwOlKqmTO7osgLH9mWQE1ALmr6McAEPDC4uQfXLo1wmdgXj1BW7EybpLvsuecRXYk",
-                  })
-                  .then((subscription) => {
-                    const { endpoint = "", keys: { p256dh, auth } = {} } =
-                      subscription.toJSON();
-                    mutate({ endpoint, p256dh, auth });
-                  });
-              }
-            });
-          });
-        }
       });
     } else {
       Modal.error({
