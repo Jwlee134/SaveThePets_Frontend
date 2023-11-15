@@ -26,7 +26,7 @@ export default function GridItem({
           {convertFromType(type)}
         </div>
       </div>
-      <h3 className="my-1">{breeds[species][breed]}</h3>
+      {type !== 3 && <h3 className="my-1">{breeds[species][breed]}</h3>}
       {address && time ? (
         <>
           <div className="flex items-center">

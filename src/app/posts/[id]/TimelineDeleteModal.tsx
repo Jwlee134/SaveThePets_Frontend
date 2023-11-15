@@ -1,6 +1,7 @@
 import TimelineMarker from "@/components/TimelineMarker";
 import { deleteTimeline, getPostDetail } from "@/libs/api";
 import { PostDetailResponse } from "@/libs/api/types";
+import { formatTime } from "@/libs/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Modal, Timeline, TimelineItemProps, message } from "antd";
 import { useParams } from "next/navigation";
@@ -57,8 +58,8 @@ export default function TimelineDeleteModal() {
       children: (
         <div className="flex justify-between">
           <div className="text-gray-500 ml-2">
-            <div>2023-05-11, 14:00</div>
-            <div>경북 경산시 대동 127-1</div>
+            <div>{formatTime(item.time)}</div>
+            <div>{item.address}</div>
           </div>
           <button
             className="text-red-500 text-lg"
